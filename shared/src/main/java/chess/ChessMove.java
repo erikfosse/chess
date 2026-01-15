@@ -19,6 +19,10 @@ public class ChessMove {
         this.endPosition = endPosition;
         this.promotionPiece = promotionPiece;
     }
+    public ChessMove(ChessPosition startPosition, ChessPosition endPosition) {
+        this.startPosition = startPosition;
+        this.endPosition = endPosition;
+    }
 
     /**
      * @return ChessPosition of starting location
@@ -41,7 +45,11 @@ public class ChessMove {
      * @return Type of piece to promote a pawn to, or null if no promotion
      */
     public ChessPiece.PieceType getPromotionPiece() {
-        return promotionPiece;
+        if (promotionPiece != null) {
+            return promotionPiece;
+        } else {
+            return null;
+        }
     }
 
     @Override

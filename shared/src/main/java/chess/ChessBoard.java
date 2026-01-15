@@ -7,9 +7,10 @@ package chess;
  * signature of the existing methods.
  */
 public class ChessBoard {
+    private ChessPiece [][] chessboard;
 
     public ChessBoard() {
-        
+        this.chessboard = new ChessPiece [8][8];
     }
 
     /**
