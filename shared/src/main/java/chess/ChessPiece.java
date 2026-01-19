@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Represents a single chess piece
@@ -70,39 +72,27 @@ public class ChessPiece {
         var moves = new ArrayList<ChessMove>();
         var x = myPosition.getRow();
         var y = myPosition.getColumn();
-        while (this.checkBounds(x + 1, y + 1)) {
-            var endPosition = new ChessPosition(x + 1, y + 1);
+        int a = x; int b = y;
+        Function<Integer, Integer> add_one = (i) -> i + 1;
+        Function<Integer, Integer> min_one = (i) -> i - 1;
+        moves.addAll(bishopHelper(board, myPosition, add_one, add_one, a, b));
+        moves.addAll(bishopHelper(board, myPosition, add_one, min_one, a, b));
+        moves.addAll(bishopHelper(board, myPosition, min_one, add_one, a, b));
+        moves.addAll(bishopHelper(board, myPosition, min_one, min_one, a, b));
+        return moves;
+    }
+
+    private Collection<ChessMove> bishopHelper(ChessBoard board, ChessPosition myPosition, Function<Integer, Integer> x_func, Function<Integer, Integer> y_func, int a, int b) {
+        var moves = new ArrayList<ChessMove>();
+        while (this.checkBounds(x_func.apply(a), y_func.apply(b))) {
+            var endPosition = new ChessPosition(x_func.apply(a), y_func.apply(b));
             if (board.getPiece(endPosition) == null) {
                 moves.add(new ChessMove(myPosition,endPosition));
-                x++; y++;
+                a = x_func.apply(a); b = y_func.apply(b);
             } else {
-                break;
-            }
-        };
-        while (this.checkBounds(x - 1, y - 1)) {
-            var endPosition = new ChessPosition(x - 1, y - 1);
-            if (board.getPiece(endPosition) == null) {
-                moves.add(new ChessMove(myPosition,endPosition));
-                x--; y--;
-            } else {
-                break;
-            }
-        };
-        while (this.checkBounds(x + 1, y - 1)) {
-            var endPosition = new ChessPosition(x + 1, y - 1);
-            if (board.getPiece(endPosition) == null) {
-                moves.add(new ChessMove(myPosition,endPosition));
-                x++; y--;
-            } else {
-                break;
-            }
-        };
-        while (this.checkBounds(x - 1, y + 1)) {
-            var endPosition = new ChessPosition(x - 1, y + 1);
-            if (board.getPiece(endPosition) == null) {
-                moves.add(new ChessMove(myPosition,endPosition));
-                x--; y++;
-            } else {
+                if (pieceColor != board.getPiece(endPosition).pieceColor) {
+                    moves.add(new ChessMove(myPosition, endPosition));
+                }
                 break;
             }
         };
@@ -128,7 +118,13 @@ public class ChessPiece {
             var y_0 = pos.getColumn();
             if (this.checkBounds(x_0, y_0)) {
                 var endPosition = new ChessPosition(x_0, y_0);
-                moves.add(new ChessMove(myPosition, endPosition));
+                if (board.getPiece(endPosition) == null) {
+                    moves.add(new ChessMove(myPosition, endPosition));
+                } else {
+                    if (pieceColor != board.getPiece(endPosition).pieceColor) {
+                        moves.add(new ChessMove(myPosition, endPosition));
+                    }
+                }
             }
         }
         return moves;
