@@ -186,21 +186,39 @@ public class ChessPiece {
         if (this.pieceColor == ChessGame.TeamColor.WHITE) {
             if (board.getPiece(new ChessPosition(x + 1, y)) == null) {
                 moves.addAll(pawnHelper(board, myPosition, add_one, add_none, x, y));
-            } if (x == 2 && board.getPiece(new ChessPosition(x + 2, y)) == null) {
+            } if (x == 2 && board.getPiece(new ChessPosition(x + 2, y)) == null && board.getPiece(new ChessPosition(x + 1, y)) == null) {
                 moves.addAll(pawnHelper(board, myPosition, add_two, add_none, x, y));
-            } if (board.getPiece(new ChessPosition(x + 1, y + 1)) != null) {
-                moves.addAll(pawnHelper(board, myPosition, add_one, add_one, x, y));
-            } if (board.getPiece(new ChessPosition(x + 1, y - 1)) != null) {
-                moves.addAll(pawnHelper(board, myPosition, add_one, min_one, x, y));
             }
+            if (this.checkBounds(x + 1, y + 1)) {
+                var piece_1 = board.getPiece(new ChessPosition(x + 1, y + 1));
+                if (piece_1 != null) {
+                    if (piece_1.pieceColor == ChessGame.TeamColor.BLACK) {moves.addAll(pawnHelper(board, myPosition, add_one, add_one, x, y));}
+                }
+            }
+            if (this.checkBounds(x + 1, y -1)) {
+                var piece_2 = board.getPiece(new ChessPosition(x + 1, y - 1));
+                if (piece_2 != null) {
+                    if (piece_2.pieceColor == ChessGame.TeamColor.BLACK) {moves.addAll(pawnHelper(board, myPosition, add_one, min_one, x, y));}
+                }
+            }
+
         } else if (this.pieceColor == ChessGame.TeamColor.BLACK) {
-            moves.addAll(pawnHelper(board, myPosition, min_one, add_none, x, y));
-            if (x == 7) {
+            if (board.getPiece(new ChessPosition(x - 1, y)) == null) {
+                moves.addAll(pawnHelper(board, myPosition, min_one, add_none, x, y));
+            } if (x == 7 && board.getPiece(new ChessPosition(x - 2, y)) == null && board.getPiece(new ChessPosition(x - 1, y)) == null) {
                 moves.addAll(pawnHelper(board, myPosition, min_two, add_none, x, y));
-            } if (board.getPiece(new ChessPosition(x - 1, y + 1)) != null) {
-                moves.addAll(pawnHelper(board, myPosition, min_one, add_one, x, y));
-            } if (board.getPiece(new ChessPosition(x - 1, y - 1)) != null) {
-                moves.addAll(pawnHelper(board, myPosition, min_one, min_one, x, y));
+            }
+            if (this.checkBounds(x - 1, y + 1)) {
+                var piece_1 = board.getPiece(new ChessPosition(x - 1, y + 1));
+                if (piece_1 != null) {
+                    if (piece_1.pieceColor == ChessGame.TeamColor.WHITE) {moves.addAll(pawnHelper(board, myPosition, min_one, add_one, x, y));}
+                }
+            }
+            if (this.checkBounds(x - 1, y - 1)) {
+                var piece_2 = board.getPiece(new ChessPosition(x - 1, y - 1));
+                if (piece_2 != null) {
+                    if (piece_2.pieceColor == ChessGame.TeamColor.WHITE) {moves.addAll(pawnHelper(board, myPosition, min_one, min_one, x, y));}
+                }
             }
         }
         return moves;
@@ -210,7 +228,7 @@ public class ChessPiece {
         var moves = new ArrayList<ChessMove>();
         if (this.checkBounds(x_func.apply(a), y_func.apply(b))) {
             var endPosition = new ChessPosition(x_func.apply(a), y_func.apply(b));
-            if (endPosition.getRow() == 8 || endPosition.getColumn() == 1) {
+            if (endPosition.getRow() == 8 || endPosition.getRow() == 1) {
                 moves.add(new ChessMove(myPosition, endPosition, PieceType.QUEEN));
                 moves.add(new ChessMove(myPosition, endPosition, PieceType.BISHOP));
                 moves.add(new ChessMove(myPosition, endPosition, PieceType.ROOK));
@@ -218,7 +236,7 @@ public class ChessPiece {
             } else {
                 moves.add(new ChessMove(myPosition, endPosition));
             }
-        }
+    }
         return moves;
     }
 
