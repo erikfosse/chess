@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Objects;
 
 /**
@@ -71,6 +72,37 @@ public class ChessBoard {
             for (int j = 0; j < 8; j += 1) {
                 chessboard[i][j] = new ChessPiece(color, ChessPiece.PieceType.PAWN);
             }
+        }
+    }
+
+    public class BoardIterator implements Iterator<ChessPiece> {
+        int i = 0;
+        int j = 0;
+        ChessPiece [][] board;
+
+        public BoardIterator() {
+            this.board = ChessBoard.this.chessboard;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return checkBound(i, j);
+        }
+
+        @Override
+        public ChessPiece next() {
+            ChessPiece piece = chessboard[i][j];
+            if (j == 7) {i++; j=0;}
+            else {i++; j++;}
+            return piece;
+        }
+
+        public ChessPosition getPosition() {
+            return new ChessPosition(i + 1, j + 1);
+        }
+
+        private boolean checkBound(int i, int j) {
+            return (i <= 7 && i >= 0 && j <= 7 && j >= 0);
         }
     }
 

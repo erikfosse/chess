@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -13,7 +14,7 @@ public class ChessGame {
     private ChessBoard board;
 
     public ChessGame() {
-
+        this.board = new ChessBoard();
     }
 
     /**
@@ -69,7 +70,46 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        var pos_moves = this.teamMoves(team);
+        var kingPos = this.kingPosition(team);
+        for (ChessMove move : pos_moves) {
+            if (move.getEndPosition() == kingPos) {
+                return true;
+            }
+        } return false;
+    }
+
+    /**
+     * Returns all possible moves for a given team
+     *
+     * @param team which team to collect moves for
+     * @return Collection of all possible moves
+     */
+    private Collection<ChessMove> teamMoves(ChessGame.TeamColor team) {
+        var moves = new ArrayList<ChessMove>();
+        var chessIterator = this.board.new BoardIterator();
+        while (chessIterator.hasNext()) {
+            ChessPosition pos = chessIterator.getPosition();
+            var piece = chessIterator.next();
+            if (piece.getTeamColor() == this.team) {
+                moves.addAll(piece.pieceMoves(this.board, pos));
+            }
+        }
+        return moves;
+    }
+
+    /**
+     * Returns the position of the King, if king is not found returns null
+     */
+    private ChessPosition kingPosition(ChessGame.TeamColor team) {
+        var chessIterator = this.board.new BoardIterator();
+        while (chessIterator.hasNext()) {
+            ChessPosition pos = chessIterator.getPosition();
+            var piece = chessIterator.next();
+            if (piece.getPieceType() == ChessPiece.PieceType.KING && piece.getTeamColor() == this.team) {
+                return pos;
+            }
+        } return null;
     }
 
     /**
@@ -99,7 +139,7 @@ public class ChessGame {
      * @param board the new board to use
      */
     public void setBoard(ChessBoard board) {
-        board.resetBoard();
+        this.board.resetBoard();
     }
 
     /**
