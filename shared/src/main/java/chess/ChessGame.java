@@ -62,10 +62,18 @@ public class ChessGame {
         var pos_moves = this.validMoves(startPos);
         for (var p_move : pos_moves) {
             if (p_move.equals(move)) {
-                this.board.addPiece(endPos, piece);
-                this.board.addPiece(startPos, null);
-                this.changeColor();
-                return;
+                if (move.getPromotionPiece() == null) {
+                    this.board.addPiece(endPos, piece);
+                    this.board.addPiece(startPos, null);
+                    this.changeColor();
+                    return;
+                } else {
+                    var new_piece_type = move.getPromotionPiece();
+                    this.board.addPiece(endPos, new ChessPiece(team, new_piece_type));
+                    this.board.addPiece(startPos, null);
+                    this.changeColor();
+                    return;
+                }
             }
         } throw new InvalidMoveException();
     }
