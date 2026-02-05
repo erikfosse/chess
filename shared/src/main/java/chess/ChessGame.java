@@ -51,7 +51,28 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
+        var startPos = move.getStartPosition();
+        var endPos = move.getEndPosition();
+        var piece = this.board.getPiece(startPos);
+        if (piece == null) {
+            throw new InvalidMoveException();
+        } if (!piece.getTeamColor().equals(this.team)) {
+            throw new InvalidMoveException();
+        }
+        var pos_moves = this.validMoves(startPos);
+        for (var p_move : pos_moves) {
+            if (p_move.equals(move)) {
+                this.board.addPiece(endPos, piece);
+                this.board.addPiece(startPos, null);
+
+                return;
+            }
+        } throw new InvalidMoveException();
+    }
+
+    private void changeColor() {
+        if (this.team.equals(TeamColor.WHITE)) {this.team = TeamColor.BLACK;}
+        else {this.team = TeamColor.WHITE;}
     }
 
     /**
@@ -163,7 +184,16 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        var chessIterator = this.board.iterator();
+        while (chessIterator.hasNext()) {
+            ChessPosition pos = chessIterator.getPosition();
+            var piece = chessIterator.next();
+            if (piece == null) {
+                continue;
+            } if (!this.validMoves(pos).isEmpty() && piece.getTeamColor().equals(teamColor)) {
+                return false;
+            }
+        } return true;
     }
 
     /**
@@ -174,7 +204,7 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        return !this.isInCheck(teamColor) && this.isInCheckmate(teamColor);
     }
 
     /**
