@@ -10,11 +10,26 @@ import java.util.Objects;
  * Note: You can add to this class, but you may not alter
  * signature of the existing methods.
  */
-public class ChessBoard {
+public class ChessBoard implements Iterable<ChessPiece> {
     private ChessPiece [][] chessboard;
 
     public ChessBoard() {
         this.chessboard = new ChessPiece [8][8];
+    }
+
+    public ChessBoard(ChessBoard copy) {
+        this.chessboard = new ChessPiece[8][8];
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                ChessPosition pos = new ChessPosition(i + 1, j + 1);
+                ChessPiece original = copy.getPiece(pos);
+                if (original != null) {
+                    this.chessboard[i][j] = new ChessPiece(original);
+                } else {
+                    this.chessboard[i][j] = null;
+                }
+            }
+        }
     }
 
     /**
@@ -75,7 +90,16 @@ public class ChessBoard {
         }
     }
 
-    public class BoardIterator implements Iterator<ChessPiece> {
+    public interface ChessBoardIterator extends Iterator<ChessPiece> {
+        ChessPosition getPosition();
+    }
+
+    @Override
+    public ChessBoardIterator iterator() {
+        return new BoardIterator();
+    }
+
+    private class BoardIterator implements ChessBoardIterator {
         int i = 0;
         int j = 0;
         ChessPiece [][] board;
@@ -93,10 +117,11 @@ public class ChessBoard {
         public ChessPiece next() {
             ChessPiece piece = chessboard[i][j];
             if (j == 7) {i++; j=0;}
-            else {i++; j++;}
+            else {j++;}
             return piece;
         }
 
+        @Override
         public ChessPosition getPosition() {
             return new ChessPosition(i + 1, j + 1);
         }
