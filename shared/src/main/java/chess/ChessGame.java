@@ -64,7 +64,7 @@ public class ChessGame {
             if (p_move.equals(move)) {
                 this.board.addPiece(endPos, piece);
                 this.board.addPiece(startPos, null);
-
+                this.changeColor();
                 return;
             }
         } throw new InvalidMoveException();
