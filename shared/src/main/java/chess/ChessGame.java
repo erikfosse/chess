@@ -78,6 +78,9 @@ public class ChessGame {
         } throw new InvalidMoveException();
     }
 
+    /**
+     * Changes the team color
+     */
     private void changeColor() {
         if (this.team.equals(TeamColor.WHITE)) {this.team = TeamColor.BLACK;}
         else {this.team = TeamColor.WHITE;}
@@ -131,6 +134,12 @@ public class ChessGame {
         } return false;
     }
 
+    /**
+     * Nearly Identical function to isInCheck except it can take a copied gameboard
+     * @param teamColor which team to check for check
+     * @param gameboard takes a copied gameboard
+     * @return True if the specified team is in check
+     */
     public boolean isInCheck_test(TeamColor teamColor, ChessBoard gameboard) {
         TeamColor oppo_color;
         if (teamColor == TeamColor.WHITE) {
