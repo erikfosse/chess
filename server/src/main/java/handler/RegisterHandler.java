@@ -1,31 +1,32 @@
 package handler;
 
 import com.google.gson.Gson;
-import db.AllUserData;
-import chess.UserRecord;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.Map;
+import service.AlreadyTakenException;
+import service.RegisterRequest;
+import service.RegisterResult;
+import service.UserService;
 
 public class RegisterHandler implements Handler {
 
     @Override
-    public void handle(@NotNull Context ctx) throws  Exception {
-        ctx.result("Hello BYU!");
+    public void handle(@NotNull Context ctx) throws Exception {
         var headers = ctx.headerMap();
-        UserRecord user = new UserRecord(headers.get("username"),
+        RegisterRequest user = new RegisterRequest(headers.get("username"),
                 headers.get("pass"),
                 headers.get("email"));
-
-        users.add(user);
-        listNames(ctx);
-    }
-
-    private void listNames(Context ctx) {
-        String jsonNames = new Gson().toJson(Map.of("users", users));
-        ctx.json(jsonNames);
+        UserService service = new UserService();
+        var response = service.register(user);
+        if (response instanceof RegisterResult result) {
+            Gson gson =  new Gson();
+            var output_string = gson.toJson(result);
+            ctx.json(output_string);
+        } else if (response instanceof AlreadyTakenException error) {
+            Gson gson =  new Gson();
+            var output_string = gson.toJson(error);
+            ctx.json(output_string);
+        }
     }
 }

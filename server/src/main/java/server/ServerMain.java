@@ -1,7 +1,6 @@
 package server;
 
-import handler.HelloHandler;
-import handler.RegisterHandler;
+import handler.*;
 import io.javalin.Javalin;
 
 
@@ -17,6 +16,12 @@ public class ServerMain {
         var chessWeb = Javalin.create().start(8080);
         chessWeb.get("/hello", new HelloHandler());
         chessWeb.post("/user", new RegisterHandler());
+        chessWeb.post("/session", new LoginHandler());
+        chessWeb.delete("/session", new LogoutHandler());
+        chessWeb.get("/game", new ListGamesHandler());
+        chessWeb.post("/game", new CreateGameHandler());
+        chessWeb.put("/game", new JoinGameHandler());
+        chessWeb.delete("/db", new ClearApplicationHandler());
     }
 
 }

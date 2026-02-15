@@ -1,5 +1,6 @@
 package dataaccess;
 
+import chess.AuthRecord;
 import db.AllUserData;
 import chess.UserRecord;
 
@@ -12,6 +13,17 @@ public class UserDao {
         for (UserRecord user : users) {
             if (user.username().equals(username)) {
                 return user;
+            }
+        } return null;
+    }
+    public static void addAuth(String username, String authToken) {
+        AllUserData.addAuth(new AuthRecord(username, authToken));
+    }
+    public static AuthRecord getAuth(String username) {
+        var authTokens = AllUserData.getAllAuthTokens();
+        for (AuthRecord auth : authTokens) {
+            if (auth.username().equals(username)) {
+                return auth;
             }
         } return null;
     }
