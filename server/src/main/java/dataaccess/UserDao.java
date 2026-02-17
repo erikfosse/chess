@@ -1,6 +1,6 @@
 package dataaccess;
 
-import chess.AuthRecord;
+import dataaccess.interfaces.UserInterface;
 import db.UserData;
 import chess.UserRecord;
 

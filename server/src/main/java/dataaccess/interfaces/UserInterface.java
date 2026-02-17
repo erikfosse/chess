@@ -1,5 +1,6 @@
-package dataaccess;
+package dataaccess.interfaces;
 
+import chess.GameRecord;
 import chess.UserRecord;
 
 public interface UserInterface {

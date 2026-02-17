@@ -1,18 +1,18 @@
 package dataaccess;
 
 import chess.AuthRecord;
+import dataaccess.interfaces.AuthInterface;
 import db.AuthData;
 
-public class AuthDao {
-    public static void addAuth(String username, String authToken) {
+public class AuthDao implements AuthInterface {
+
+    @Override
+    public void addAuth(String username, String authToken) {
         AuthData.addAuth(new AuthRecord(username, authToken));
     }
-    public static AuthRecord getAuth(String username) {
-        var authTokens = AuthData.getAllAuthTokens();
-        for (AuthRecord auth : authTokens) {
-            if (auth.username().equals(username)) {
-                return auth;
-            }
-        } return null;
+
+    @Override
+    public AuthRecord getAuth(String username) {
+        return AuthData.getAuth(username);
     }
 }
