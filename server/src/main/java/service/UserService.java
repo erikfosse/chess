@@ -1,7 +1,12 @@
 package service;
 
 import chess.UserRecord;
+import dataaccess.AuthDao;
 import dataaccess.UserDao;
+import service.exception.AlreadyTakenException;
+import service.request.GeneralApi;
+import service.request.RegisterRequest;
+import service.result.RegisterResult;
 
 import java.util.UUID;
 
@@ -12,13 +17,14 @@ public class UserService {
         String password = registerRequest.password();
         String email = registerRequest.email();
 
-        UserRecord response = UserDao.getUser(username);
+        UserDao userdao = new UserDao();
+        UserRecord response = userdao.getUser(username);
         if (response != null) {
-            return new AlreadyTakenException("user already taken");
+            return new AlreadyTakenException("Error: already taken");
         } else {
             String authToken = generateToken();
-            UserDao.addUser(username, password, email);
-            UserDao.addAuth(username, authToken);
+            userdao.addUser(username, password, email);
+            AuthDao.addAuth(username, authToken);
             return new RegisterResult(username, authToken);
         }
     }
