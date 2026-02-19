@@ -1,5 +1,7 @@
 package service.exception;
 
-import service.request.GeneralApi;
-
-public record AlreadyTakenException(String message) implements GeneralApi {}
+public class AlreadyTakenException extends GeneralException{
+    public AlreadyTakenException(String error) {
+        super(error);
+    }
+}
