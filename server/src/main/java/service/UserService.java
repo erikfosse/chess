@@ -4,10 +4,7 @@ import chess.AuthRecord;
 import chess.UserRecord;
 import dataaccess.AuthDao;
 import dataaccess.UserDao;
-import service.exception.AlreadyTakenException;
-import service.exception.GeneralException;
-import service.exception.IncorrectPasswordException;
-import service.exception.IncorrectUsernameException;
+import service.exception.*;
 import service.request.GeneralApi;
 import service.request.LoginRequest;
 import service.request.LogoutRequest;
@@ -54,13 +51,15 @@ public class UserService {
             return new LoginResult(user.username(), authToken);
         }
     }
-    public LogoutResult logout(LogoutRequest logoutRequest) {
+    public GeneralApi logout(LogoutRequest logoutRequest) {
         String authToken = logoutRequest.authToken();
         AuthDao authdao = new AuthDao();
         AuthRecord authData = authdao.getAuth(authToken);
         if (authData == null) {
-            return new IncorrectAuthTokenException();
-
+            return new IncorrectAuthException("Error: unauthorized");
+        } else {
+            authdao.delAuth(authToken);
+            return new LogoutResult();
         }
     }
 

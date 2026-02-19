@@ -1,4 +1,5 @@
 package service.result;
 
-public record LogoutResult() {
-}
+import service.request.GeneralApi;
+
+public record LogoutResult() implements GeneralApi { }

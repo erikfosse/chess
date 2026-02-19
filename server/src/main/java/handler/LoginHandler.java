@@ -12,23 +12,34 @@ import service.request.LoginRequest;
 import service.request.RegisterRequest;
 import service.result.LoginResult;
 
-public class LoginHandler implements Handler {
+public class LoginHandler extends MyHandler implements Handler {
 
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
-        var body_string = ctx.body();
-
-        Gson gson = new Gson();
-        var request = gson.fromJson(body_string, LoginRequest.class);
+        var request = processRequest(ctx, LoginRequest.class);
         UserService service = new UserService();
-        var response = service.login(request);
-        var outputString = gson.toJson(response);
-        ctx.json(outputString);
-        switch (response) {
+        var result = service.login((LoginRequest) request);
+        sendResult(ctx, result);
+        switch (result) {
             case LoginResult r -> ctx.status(200);
             case IncorrectPasswordException r -> ctx.status(400);
             case IncorrectUsernameException r -> ctx.status(401);
             default -> ctx.status(500);
+
+
+//        var body_string = ctx.body();
+//
+//        Gson gson = new Gson();
+//        var request = gson.fromJson(body_string, LoginRequest.class);
+//        UserService service = new UserService();
+//        var response = service.login(request);
+//        var outputString = gson.toJson(response);
+//        ctx.json(outputString);
+//        switch (response) {
+//            case LoginResult r -> ctx.status(200);
+//            case IncorrectPasswordException r -> ctx.status(400);
+//            case IncorrectUsernameException r -> ctx.status(401);
+//            default -> ctx.status(500);
         }
     }
 }

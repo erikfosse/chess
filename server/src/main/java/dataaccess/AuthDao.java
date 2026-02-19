@@ -15,4 +15,7 @@ public class AuthDao implements AuthInterface {
     public AuthRecord getAuth(String username) {
         return AuthData.getAuth(username);
     }
+
+    @Override
+    public void delAuth(String authToken) { AuthData.delAuth(authToken);}
 }

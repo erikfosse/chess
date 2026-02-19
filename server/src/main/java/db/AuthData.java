@@ -16,4 +16,7 @@ public class AuthData {
     public static AuthRecord getAuth(String auth) {
         return authTokens.get(auth);
     }
+    public static void delAuth(String auth) {
+        authTokens.remove(auth);
+    }
 }
