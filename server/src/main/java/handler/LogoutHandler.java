@@ -13,9 +13,9 @@ public class LogoutHandler extends MyHandler implements Handler {
 
     @Override
     public void handle(@NotNull Context ctx) throws Exception {
-        var request = processRequest(ctx, LogoutRequest.class);
+        var request = new LogoutRequest(ctx.headerMap().get("authorization"));
         UserService service = new UserService();
-        var result = service.logout((LogoutRequest) request);
+        var result = service.logout(request);
         sendResult(ctx, result);
         switch (result) {
             case LogoutResult r -> ctx.status(200);
