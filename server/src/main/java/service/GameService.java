@@ -1,6 +1,7 @@
 package service;
 
 import chess.AuthRecord;
+import chess.ChessGame;
 import chess.GameRecord;
 import dataaccess.AuthDao;
 import dataaccess.GameDao;
@@ -10,6 +11,7 @@ import service.request.CreateGameRequest;
 import service.request.GeneralApi;
 import service.request.JoinGameRequest;
 import service.request.ListGamesRequest;
+import service.result.CreateGameResult;
 import service.result.ListGamesResult;
 import service.result.LogoutResult;
 import service.result.SingleGameResult;
@@ -37,8 +39,20 @@ public class GameService {
         }
     }
 
-    public GeneralApi createGame(CreateGameRequest request) {
-
+    public GeneralApi createGame(String authToken, CreateGameRequest request) {
+        var result = checkAuthData(authToken);
+        if (result instanceof IncorrectAuthException exception) {
+            return exception;
+        } else if (result instanceof AuthRecord auth) {
+            GameDao gameDao = new GameDao();
+            ChessGame chessGame = new ChessGame();
+            int gameID = gameDao.getNumGames();
+            gameDao.addGame(gameID, null, null,
+                    request.gameName(), chessGame);
+            return new CreateGameResult(gameID);
+        } else {
+            return new GeneralException("Error");
+        }
     }
 
     public GeneralApi joinGame(JoinGameRequest request) {

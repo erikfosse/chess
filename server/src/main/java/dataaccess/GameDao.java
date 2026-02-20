@@ -21,4 +21,7 @@ public class GameDao implements GameInterface {
     public Collection<GameRecord> getAllGames (String username) {
         return GameData.getAllGames(username);
     }
+    public Integer getNumGames() {
+        return GameData.getNumGames();
+    }
 }

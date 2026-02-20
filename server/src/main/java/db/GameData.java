@@ -10,7 +10,14 @@ import java.util.Map;
 public class GameData {
     private static final Map<Integer, GameRecord> games = new HashMap<>();
     private static final Map<String, ArrayList<GameRecord>> gamesByUser = new HashMap<>();
+    private static Integer numGames = 0;
+
+    public static Integer getNumGames() {
+        return numGames;
+    }
+
     public static void addGame(GameRecord game) {
+        numGames++;
         games.put(game.gameID(), game);
         if (game.blackUsername() != null) {
             gamesByUser.computeIfPresent(game.blackUsername(), (key, list) -> {
@@ -27,6 +34,7 @@ public class GameData {
             gamesByUser.computeIfAbsent(game.whiteUsername(), T -> new ArrayList<GameRecord>()).add(game);
         }
     }
+
     public static GameRecord getGame(Integer gameID) {
         return games.get(gameID);
     }

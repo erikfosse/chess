@@ -1,4 +1,6 @@
 package service.result;
 
-public class CreateGameResult {
+import service.request.GeneralApi;
+
+public record CreateGameResult(Integer gameID) implements GeneralApi {
 }
