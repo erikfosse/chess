@@ -1,4 +1,4 @@
 package model.request;
 
-public class DeleteRequest {
+public record DeleteRequest(String authToken) {
 }
