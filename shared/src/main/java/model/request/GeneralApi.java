@@ -1,3 +1,3 @@
-package service.request;
+package model.request;
 
 public interface GeneralApi {}

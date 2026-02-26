@@ -1,16 +1,13 @@
 package handler;
 
-import com.google.gson.Gson;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.jetbrains.annotations.NotNull;
 import service.UserService;
-import service.exception.GeneralException;
-import service.exception.IncorrectPasswordException;
-import service.exception.IncorrectUsernameException;
-import service.request.LoginRequest;
-import service.request.RegisterRequest;
-import service.result.LoginResult;
+import model.exception.IncorrectPasswordException;
+import model.exception.IncorrectUsernameException;
+import model.request.LoginRequest;
+import model.result.LoginResult;
 
 public class LoginHandler extends MyHandler implements Handler {
 

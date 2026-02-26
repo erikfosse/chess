@@ -4,11 +4,9 @@ import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.jetbrains.annotations.NotNull;
 import service.GameService;
-import service.exception.IncorrectAuthException;
-import service.request.CreateGameRequest;
-import service.request.ListGamesRequest;
-import service.request.LoginRequest;
-import service.result.LogoutResult;
+import model.exception.IncorrectAuthException;
+import model.request.CreateGameRequest;
+import model.result.LogoutResult;
 
 public class CreateGameHandler extends MyHandler implements Handler {
 

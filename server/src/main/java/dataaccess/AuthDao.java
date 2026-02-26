@@ -1,6 +1,6 @@
 package dataaccess;
 
-import chess.AuthRecord;
+import model.AuthRecord;
 import dataaccess.interfaces.AuthInterface;
 import db.AuthData;
 
@@ -17,5 +17,11 @@ public class AuthDao implements AuthInterface {
     }
 
     @Override
-    public void delAuth(String authToken) { AuthData.delAuth(authToken);}
+    public void delAuth(String authToken) {
+        AuthData.delAuth(authToken);
+    }
+
+    public void deleteData() {
+        AuthData.deleteData();
+    }
 }

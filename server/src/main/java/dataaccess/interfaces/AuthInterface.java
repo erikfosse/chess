@@ -1,6 +1,6 @@
 package dataaccess.interfaces;
 
-import chess.AuthRecord;
+import model.AuthRecord;
 
 public interface AuthInterface {
     public void addAuth(String username, String authToken);

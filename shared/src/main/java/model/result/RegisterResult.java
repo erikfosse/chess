@@ -1,5 +1,5 @@
-package service.result;
+package model.result;
 
-import service.request.GeneralApi;
+import model.request.GeneralApi;
 
 public record RegisterResult (String username, String authToken) implements GeneralApi {}

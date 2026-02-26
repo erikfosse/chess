@@ -1,13 +1,12 @@
 package handler;
 
-import com.google.gson.Gson;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.jetbrains.annotations.NotNull;
 import service.UserService;
-import service.exception.IncorrectAuthException;
-import service.request.LogoutRequest;
-import service.result.LogoutResult;
+import model.exception.IncorrectAuthException;
+import model.request.LogoutRequest;
+import model.result.LogoutResult;
 
 public class LogoutHandler extends MyHandler implements Handler {
 

@@ -1,6 +1,6 @@
-package service.exception;
+package model.exception;
 
-import service.request.GeneralApi;
+import model.request.GeneralApi;
 
 public class GeneralException implements GeneralApi {
     private final String error;

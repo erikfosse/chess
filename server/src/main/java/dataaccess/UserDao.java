@@ -2,7 +2,7 @@ package dataaccess;
 
 import dataaccess.interfaces.UserInterface;
 import db.UserData;
-import chess.UserRecord;
+import model.UserRecord;
 
 public class UserDao implements UserInterface {
 
@@ -14,5 +14,9 @@ public class UserDao implements UserInterface {
     @Override
     public UserRecord getUser(String username) {
         return UserData.getUser(username);
+    }
+
+    public void deleteData() {
+        UserData.deleteData();
     }
 }

@@ -1,17 +1,20 @@
 package service;
 
-import chess.AuthRecord;
-import chess.UserRecord;
+import model.AuthRecord;
+import model.UserRecord;
 import dataaccess.AuthDao;
 import dataaccess.UserDao;
-import service.exception.*;
-import service.request.GeneralApi;
-import service.request.LoginRequest;
-import service.request.LogoutRequest;
-import service.request.RegisterRequest;
-import service.result.LoginResult;
-import service.result.LogoutResult;
-import service.result.RegisterResult;
+import model.exception.AlreadyTakenException;
+import model.exception.IncorrectAuthException;
+import model.exception.IncorrectPasswordException;
+import model.exception.IncorrectUsernameException;
+import model.request.GeneralApi;
+import model.request.LoginRequest;
+import model.request.LogoutRequest;
+import model.request.RegisterRequest;
+import model.result.LoginResult;
+import model.result.LogoutResult;
+import model.result.RegisterResult;
 
 import java.util.UUID;
 

@@ -1,15 +1,12 @@
 package db;
 
-import chess.AuthRecord;
-import chess.UserRecord;
+import model.AuthRecord;
 
 import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 
 public class AuthData {
-    private static final Map<String, AuthRecord> authTokens = new HashMap<>();
+    private static Map<String, AuthRecord> authTokens = new HashMap<>();
     public static void addAuth(AuthRecord auth) {
         authTokens.put(auth.authToken(), auth);
     }
@@ -18,5 +15,8 @@ public class AuthData {
     }
     public static void delAuth(String auth) {
         authTokens.remove(auth);
+    }
+    public static void deleteData() {
+        authTokens = new HashMap<>();
     }
 }

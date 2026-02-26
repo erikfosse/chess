@@ -1,4 +1,4 @@
-package service.exception;
+package model.exception;
 
 public class IncorrectUsernameException extends GeneralException{
     public IncorrectUsernameException(String error) {

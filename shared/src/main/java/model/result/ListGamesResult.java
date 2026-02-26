@@ -1,6 +1,6 @@
-package service.result;
+package model.result;
 
-import service.request.GeneralApi;
+import model.request.GeneralApi;
 
 import java.util.ArrayList;
 

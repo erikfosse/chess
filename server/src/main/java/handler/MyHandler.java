@@ -3,9 +3,7 @@ package handler;
 import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
 import io.javalin.http.Context;
-import service.UserService;
-import service.request.GeneralApi;
-import service.request.LoginRequest;
+import model.request.GeneralApi;
 
 public class MyHandler {
     public Object processRequest(@NotNull Context ctx, Class<?> RequestClass) throws Exception {

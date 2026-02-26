@@ -4,15 +4,9 @@ import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.jetbrains.annotations.NotNull;
 import service.GameService;
-import service.UserService;
-import service.exception.IncorrectAuthException;
-import service.exception.IncorrectPasswordException;
-import service.exception.IncorrectUsernameException;
-import service.request.ListGamesRequest;
-import service.request.LoginRequest;
-import service.result.ListGamesResult;
-import service.result.LoginResult;
-import service.result.LogoutResult;
+import model.exception.IncorrectAuthException;
+import model.request.ListGamesRequest;
+import model.result.LogoutResult;
 
 public class ListGamesHandler extends MyHandler implements Handler {
 

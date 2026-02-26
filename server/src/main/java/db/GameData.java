@@ -1,6 +1,6 @@
 package db;
 
-import chess.GameRecord;
+import model.GameRecord;
 
 import java.util.Collection;
 import java.util.ArrayList;
@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class GameData {
-    private static final Map<Integer, GameRecord> games = new HashMap<>();
-    private static final Map<String, ArrayList<GameRecord>> gamesByUser = new HashMap<>();
+    private static Map<Integer, GameRecord> games = new HashMap<>();
+    private static Map<String, ArrayList<GameRecord>> gamesByUser = new HashMap<>();
     private static Integer numGames = 0;
 
     public static Integer getNumGames() {
@@ -19,26 +19,36 @@ public class GameData {
     public static void addGame(GameRecord game) {
         numGames++;
         games.put(game.gameID(), game);
-        if (game.blackUsername() != null) {
-            gamesByUser.computeIfPresent(game.blackUsername(), (key, list) -> {
-                list.add(game);
-                return list;
-            });
-            gamesByUser.computeIfAbsent(game.blackUsername(), T -> new ArrayList<GameRecord>()).add(game);
-        }
-        if (game.whiteUsername() != null) {
-            gamesByUser.computeIfPresent(game.whiteUsername(), (key, list) -> {
-                list.add(game);
-                return list;
-            });
-            gamesByUser.computeIfAbsent(game.whiteUsername(), T -> new ArrayList<GameRecord>()).add(game);
-        }
     }
 
     public static GameRecord getGame(Integer gameID) {
         return games.get(gameID);
     }
+
     public static Collection<GameRecord> getAllGames(String username) {
         return gamesByUser.get(username);
+    }
+
+    public static void editGame(Integer gameID, String playerColor, String username) {
+        GameRecord thisGame = games.get(gameID);
+        GameRecord newGame;
+        if (playerColor.equals("WHITE")) {
+            newGame = new GameRecord(thisGame.gameID(), username, thisGame.blackUsername(),
+                    thisGame.gameName(), thisGame.game());
+        } else {
+            newGame = new GameRecord(thisGame.gameID(), thisGame.whiteUsername(), username,
+                    thisGame.gameName(), thisGame.game());
+        }
+        games.put(gameID, newGame);
+        if (!gamesByUser.containsKey(username)) {
+            gamesByUser.put(username, new ArrayList<>());
+        }
+        gamesByUser.get(username).add(newGame);
+    }
+
+    public static void deleteData() {
+        games = new HashMap<>();
+        gamesByUser = new HashMap<>();
+        numGames = 0;
     }
 }

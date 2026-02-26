@@ -1,24 +1,53 @@
 package service;
 
-import chess.AuthRecord;
+import model.AuthRecord;
 import chess.ChessGame;
-import chess.GameRecord;
+import model.GameRecord;
 import dataaccess.AuthDao;
 import dataaccess.GameDao;
-import service.exception.GeneralException;
-import service.exception.IncorrectAuthException;
-import service.request.CreateGameRequest;
-import service.request.GeneralApi;
-import service.request.JoinGameRequest;
-import service.request.ListGamesRequest;
-import service.result.CreateGameResult;
-import service.result.ListGamesResult;
-import service.result.LogoutResult;
-import service.result.SingleGameResult;
+import model.exception.GeneralException;
+import model.exception.IncorrectAuthException;
+import model.request.CreateGameRequest;
+import model.request.GeneralApi;
+import model.request.JoinGameRequest;
+import model.request.ListGamesRequest;
+import model.result.CreateGameResult;
+import model.result.JoinGameResult;
+import model.result.ListGamesResult;
+import model.result.SingleGameResult;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class GameService {
+    public GeneralApi createGame(String authToken, CreateGameRequest request) {
+        var result = checkAuthData(authToken);
+        if (result instanceof IncorrectAuthException exception) {
+            return exception;
+        } else if (result instanceof AuthRecord auth) {
+            GameDao gameDao = new GameDao();
+            ChessGame chessGame = new ChessGame();
+            int gameID = gameDao.getNumGames();
+            gameDao.addGame(gameID, request.gameName(), chessGame);
+            return new CreateGameResult(gameID);
+        } else {
+            return new GeneralException("Error");
+        }
+    }
+
+    public GeneralApi joinGame(String authToken, JoinGameRequest request) {
+        var result = checkAuthData(authToken);
+        if (result instanceof IncorrectAuthException exception) {
+            return exception;
+        } else if (result instanceof AuthRecord auth) {
+            GameDao gameDao = new GameDao();
+            gameDao.editGame(request.gameID(), request.playerColor(), auth.username());
+            return new JoinGameResult();
+        } else {
+            return new GeneralException("Error");
+        }
+    }
+
     public GeneralApi listGames(ListGamesRequest request) {
         var result = checkAuthData(request.authToken());
         if (result instanceof IncorrectAuthException exception) {
@@ -39,33 +68,9 @@ public class GameService {
         }
     }
 
-    public GeneralApi createGame(String authToken, CreateGameRequest request) {
-        var result = checkAuthData(authToken);
-        if (result instanceof IncorrectAuthException exception) {
-            return exception;
-        } else if (result instanceof AuthRecord auth) {
-            GameDao gameDao = new GameDao();
-            ChessGame chessGame = new ChessGame();
-            int gameID = gameDao.getNumGames();
-            gameDao.addGame(gameID, null, null,
-                    request.gameName(), chessGame);
-            return new CreateGameResult(gameID);
-        } else {
-            return new GeneralException("Error");
-        }
-    }
-
-    public GeneralApi joinGame(JoinGameRequest request) {
-
-    }
-
-    private Object checkAuthData(String authToken) {
+    public static Object checkAuthData(String authToken) {
         AuthDao authdao = new AuthDao();
         AuthRecord authData = authdao.getAuth(authToken);
-        if (authData == null) {
-            return new IncorrectAuthException("Error: unauthorized");
-        } else {
-            return authData;
-        }
+        return Objects.requireNonNullElseGet(authData, () -> new IncorrectAuthException("Error: unauthorized"));
     }
 }
