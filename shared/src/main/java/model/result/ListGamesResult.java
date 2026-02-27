@@ -5,5 +5,10 @@ import model.request.GeneralApi;
 import java.util.ArrayList;
 
 public record ListGamesResult(ArrayList<SingleGameResult> games) implements GeneralApi {
+
+    public ListGamesResult() {
+        this(new ArrayList<SingleGameResult>());
+    }
 }
+
 

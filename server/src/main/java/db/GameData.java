@@ -1,5 +1,6 @@
 package db;
 
+import chess.ChessGame;
 import model.GameRecord;
 
 import java.util.Collection;
@@ -16,9 +17,9 @@ public class GameData {
         return numGames;
     }
 
-    public static void addGame(GameRecord game) {
+    public static void addGame(String gameName, ChessGame game) {
         numGames++;
-        games.put(game.gameID(), game);
+        games.put(numGames, new GameRecord(numGames, null, null, gameName, game));
     }
 
     public static GameRecord getGame(Integer gameID) {

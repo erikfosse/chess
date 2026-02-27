@@ -1,18 +1,42 @@
 package handler;
 
 import com.google.gson.Gson;
+import model.exception.AlreadyTakenException;
+import model.exception.BadRequestException;
+import model.exception.ErrorResult;
+import model.exception.UnauthorizedException;
+import model.result.LoginResult;
 import org.jetbrains.annotations.NotNull;
 import io.javalin.http.Context;
 import model.request.GeneralApi;
 
 public class MyHandler {
-    public Object processRequest(@NotNull Context ctx, Class<?> RequestClass) throws Exception {
+    public Object processRequest(@NotNull Context ctx, Class<?> RequestClass) throws BadRequestException {
         var body_string = ctx.body();
         Gson gson = new Gson();
         return gson.fromJson(body_string, RequestClass);
     }
 
-    public void sendResult(@NotNull Context ctx, GeneralApi response) {
+    public void sendResult(@NotNull Context ctx, GeneralApi result, Class<?> resultClass) {
+
+        GeneralApi ResultClass;
+        switch (result) {
+            case GeneralApi res when resultClass.isInstance(res) -> ctx.status(200);
+            case BadRequestException r -> ctx.status(400);
+            case UnauthorizedException r -> ctx.status(401);
+            case AlreadyTakenException r -> ctx.status(403);
+            default -> ctx.status(500);
+        }
+
+        if (result instanceof Exception e) {
+            ErrorResult errorResult = new ErrorResult(e.getMessage());
+            convertToJson(ctx, errorResult);
+        } else {
+            convertToJson(ctx, result);
+        }
+    }
+
+    private void convertToJson(@NotNull Context ctx, GeneralApi response) {
         Gson gson = new Gson();
         var outputString = gson.toJson(response);
         ctx.json(outputString);

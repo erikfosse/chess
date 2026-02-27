@@ -4,10 +4,7 @@ import model.AuthRecord;
 import model.UserRecord;
 import dataaccess.AuthDao;
 import dataaccess.UserDao;
-import model.exception.AlreadyTakenException;
-import model.exception.IncorrectAuthException;
-import model.exception.IncorrectPasswordException;
-import model.exception.IncorrectUsernameException;
+import model.exception.*;
 import model.request.GeneralApi;
 import model.request.LoginRequest;
 import model.request.LogoutRequest;
@@ -24,12 +21,14 @@ public class UserService {
         String username = registerRequest.username();
         String password = registerRequest.password();
         String email = registerRequest.email();
-
+        if (username == null || password == null || email == null) {
+            return new BadRequestException();
+        }
         UserDao userdao = new UserDao();
         AuthDao authdao = new AuthDao();
         UserRecord user = userdao.getUser(username);
         if (user != null) {
-            return new AlreadyTakenException("Error: already taken");
+            return new AlreadyTakenException();
         } else {
             String authToken = generateToken();
             userdao.addUser(username, password, email);
@@ -37,29 +36,32 @@ public class UserService {
             return new RegisterResult(username, authToken);
         }
     }
+
     public GeneralApi login(LoginRequest loginRequest) {
         String username = loginRequest.username();
         String password = loginRequest.password();
+        if (username == null || password == null) {
+            return new BadRequestException();
+        }
         UserDao userdao = new UserDao();
         AuthDao authdao = new AuthDao();
 
         UserRecord user = userdao.getUser(username);
-        if (user == null) {
-            return new IncorrectUsernameException("Error: username does not exist");
-        } else if (!user.password().equals(password)) {
-            return new IncorrectPasswordException("Error: incorrect password");
+        if (user == null || !user.password().equals(password)) {
+            return new UnauthorizedException();
         } else {
             String authToken = generateToken();
             authdao.addAuth(user.username(), authToken);
             return new LoginResult(user.username(), authToken);
         }
     }
+
     public GeneralApi logout(LogoutRequest logoutRequest) {
         String authToken = logoutRequest.authToken();
         AuthDao authdao = new AuthDao();
         AuthRecord authData = authdao.getAuth(authToken);
         if (authData == null) {
-            return new IncorrectAuthException("Error: unauthorized");
+            return new UnauthorizedException();
         } else {
             authdao.delAuth(authToken);
             return new LogoutResult();

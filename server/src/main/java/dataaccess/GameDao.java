@@ -10,8 +10,8 @@ import java.util.Collection;
 public class GameDao implements GameInterface {
 
     @Override
-    public void addGame(Integer gameID, String gameName, ChessGame game) {
-        GameData.addGame(new GameRecord(gameID, null, null, gameName, game));
+    public void addGame(String gameName, ChessGame game) {
+        GameData.addGame(gameName, game);
     }
     @Override
     public GameRecord getGame(Integer gameID) {
