@@ -71,7 +71,7 @@ public class GameServiceTest {
         gameService.createGame(auth, new CreateGameRequest("Game_1"));
         gameService.joinGame(auth, new JoinGameRequest("WHITE", 1));
         var result = gameService.listGames(new ListGamesRequest(auth));
-        Object ListGamesResult = new ListGamesResult(new ArrayList<SingleGameResult>());
+        Object ListGamesResult = new ListGamesResult(new ArrayList<GameRecord>());
         Assertions.assertEquals(ListGamesResult.getClass(), result.getClass());
     }
 

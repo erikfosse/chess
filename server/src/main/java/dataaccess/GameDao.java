@@ -4,6 +4,7 @@ import chess.ChessGame;
 import model.GameRecord;
 import dataaccess.interfaces.GameInterface;
 import db.GameData;
+import model.exception.AlreadyTakenException;
 
 import java.util.Collection;
 
@@ -24,7 +25,7 @@ public class GameDao implements GameInterface {
     public Integer getNumGames() {
         return GameData.getNumGames();
     }
-    public void editGame(Integer gameID, String playerColor, String username) {
+    public void editGame(Integer gameID, String playerColor, String username) throws AlreadyTakenException {
         GameData.editGame(gameID, playerColor, username);
     }
     public void deleteData() {

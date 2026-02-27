@@ -5,6 +5,7 @@ import chess.ChessGame;
 import model.GameRecord;
 import dataaccess.AuthDao;
 import dataaccess.GameDao;
+import model.exception.AlreadyTakenException;
 import model.exception.BadRequestException;
 import model.exception.UnauthorizedException;
 import model.request.CreateGameRequest;
@@ -41,12 +42,19 @@ public class GameService {
         if (authToken == null || request.gameID() == null || request.playerColor() == null) {
             return new BadRequestException();
         }
+        if (!request.playerColor().equals("WHITE") && !request.playerColor().equals("BLACK")) {
+            return new BadRequestException();
+        }
         var result = checkAuthData(authToken);
         if (result instanceof UnauthorizedException exception) {
             return exception;
         } else if (result instanceof AuthRecord auth) {
             GameDao gameDao = new GameDao();
-            gameDao.editGame(request.gameID(), request.playerColor(), auth.username());
+            try {
+                gameDao.editGame(request.gameID(), request.playerColor(), auth.username());
+            } catch (AlreadyTakenException e) {
+                return e;
+            }
             return new JoinGameResult();
         } else {
             return null;
@@ -64,16 +72,10 @@ public class GameService {
             GameDao gameDao = new GameDao();
             var username = auth.username();
             var gamesList = gameDao.getAllGames(username);
-            ArrayList<SingleGameResult> gamesAll = new ArrayList<>();
             if (gamesList == null) {
                 return new ListGamesResult();
             }
-            for (GameRecord game : gamesList) {
-                var temp = new SingleGameResult(game.gameID(),
-                        game.whiteUsername(), game.blackUsername());
-                gamesAll.add(temp);
-            }
-            return new ListGamesResult(gamesAll);
+            return new ListGamesResult((ArrayList<GameRecord>) gamesList);
         } else {
             return null;
         }
