@@ -19,7 +19,6 @@ public class MyHandler {
 
     public void sendResult(@NotNull Context ctx, GeneralApi result, Class<?> resultClass) {
 
-        GeneralApi ResultClass;
         switch (result) {
             case GeneralApi res when resultClass.isInstance(res) -> ctx.status(200);
             case BadRequestException r -> ctx.status(400);

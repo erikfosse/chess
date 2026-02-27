@@ -31,39 +31,39 @@ public class GameServiceTest {
     @Test
     public void successCreation() {
         var result = gameService.createGame(auth, new CreateGameRequest("GoodGame"));
-        Object CreateGameResult = new CreateGameResult(1);
-        Assertions.assertEquals(CreateGameResult.getClass(), result.getClass());
+        Object createGameResult = new CreateGameResult(1);
+        Assertions.assertEquals(createGameResult.getClass(), result.getClass());
     }
 
     @Test
     public void creationBadRequest() {
         var result = gameService.createGame(auth, new CreateGameRequest(null));
-        Object CreateGameResult = new BadRequestException();
-        Assertions.assertEquals(CreateGameResult.getClass(), result.getClass());
+        Object badRequestException = new BadRequestException();
+        Assertions.assertEquals(badRequestException.getClass(), result.getClass());
 
         var result_2 = gameService.createGame(null, new CreateGameRequest("GoodGame"));
-        Object CreateGameResult_2 = new BadRequestException();
-        Assertions.assertEquals(CreateGameResult_2.getClass(), result_2.getClass());
+        Object badRequestException1 = new BadRequestException();
+        Assertions.assertEquals(badRequestException1.getClass(), result_2.getClass());
     }
 
     @Test
     public void successJoinGame() {
         gameService.createGame(auth, new CreateGameRequest("GoodGame"));
         var result = gameService.joinGame(auth, new JoinGameRequest("WHITE", 1));
-        Object JoinGameResult = new JoinGameResult();
-        Assertions.assertEquals(JoinGameResult.getClass(), result.getClass());
+        Object joinGameResult = new JoinGameResult();
+        Assertions.assertEquals(joinGameResult.getClass(), result.getClass());
     }
 
     @Test
     public void joinGameBadRequest() {
         gameService.createGame(auth, new CreateGameRequest("GoodGame"));
         var result = gameService.joinGame(auth, new JoinGameRequest(null, 1));
-        Object JoinGameResult = new BadRequestException();
-        Assertions.assertEquals(JoinGameResult.getClass(), result.getClass());
+        Object badRequestException = new BadRequestException();
+        Assertions.assertEquals(badRequestException.getClass(), result.getClass());
 
         var result_1 = gameService.joinGame(auth, new JoinGameRequest("WHITE", null));
-        Object JoinGameResult_1 = new BadRequestException();
-        Assertions.assertEquals(JoinGameResult_1.getClass(), result_1.getClass());
+        Object badRequestException1 = new BadRequestException();
+        Assertions.assertEquals(badRequestException1.getClass(), result_1.getClass());
     }
 
     @Test
@@ -71,8 +71,8 @@ public class GameServiceTest {
         gameService.createGame(auth, new CreateGameRequest("Game_1"));
         gameService.joinGame(auth, new JoinGameRequest("WHITE", 1));
         var result = gameService.listGames(new ListGamesRequest(auth));
-        Object ListGamesResult = new ListGamesResult(new ArrayList<GameRecord>());
-        Assertions.assertEquals(ListGamesResult.getClass(), result.getClass());
+        Object listGamesResult = new ListGamesResult(new ArrayList<GameRecord>());
+        Assertions.assertEquals(listGamesResult.getClass(), result.getClass());
     }
 
     @Test
@@ -80,7 +80,7 @@ public class GameServiceTest {
         gameService.createGame(auth, new CreateGameRequest("Game_1"));
         gameService.joinGame(auth, new JoinGameRequest("WHITE", 1));
         var result = gameService.listGames(new ListGamesRequest(null));
-        Object ListGamesResult = new BadRequestException();
-        Assertions.assertEquals(ListGamesResult.getClass(), result.getClass());
+        Object badRequestException = new BadRequestException();
+        Assertions.assertEquals(badRequestException.getClass(), result.getClass());
     }
 }
