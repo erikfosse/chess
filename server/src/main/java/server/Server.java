@@ -16,7 +16,7 @@ public class Server {
     public Server() {
 //        var piece = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
 //        System.out.println("♕ 240 Chess Server: " + piece);
-        javalin = Javalin.create(config -> config.staticFiles.add("resources/web"));
+        javalin = Javalin.create(config -> config.staticFiles.add("web"));
         javalin.post("/user", new RegisterHandler());
         javalin.post("/session", new LoginHandler());
         javalin.delete("/session", new LogoutHandler());
