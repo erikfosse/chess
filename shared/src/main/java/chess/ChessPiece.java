@@ -62,50 +62,51 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         return switch (type) {
-            case ROOK -> this.Rook(board, myPosition);
-            case BISHOP -> this.Bishop(board, myPosition);
-            case KNIGHT -> this.Knight(board, myPosition);
-            case KING -> this.King(board, myPosition);
-            case QUEEN -> this.Queen(board, myPosition);
-            case PAWN -> this.Pawn(board, myPosition);
+            case ROOK -> this.rook(board, myPosition);
+            case BISHOP -> this.bishop(board, myPosition);
+            case KNIGHT -> this.knight(board, myPosition);
+            case KING -> this.king(board, myPosition);
+            case QUEEN -> this.queen(board, myPosition);
+            case PAWN -> this.pawn(board, myPosition);
             case null, default -> throw new RuntimeException("Not implemented");
         };
     }
 
-    private Collection<ChessMove> Bishop(ChessBoard board, ChessPosition myPosition) {
+    private Collection<ChessMove> bishop(ChessBoard board, ChessPosition myPosition) {
         var moves = new ArrayList<ChessMove>();
         var x = myPosition.getRow();
         var y = myPosition.getColumn();
-        Function<Integer, Integer> add_one = (i) -> i + 1;
-        Function<Integer, Integer> min_one = (i) -> i - 1;
-        moves.addAll(bishop_rook_Helper(board, myPosition, add_one, add_one, x, y));
-        moves.addAll(bishop_rook_Helper(board, myPosition, add_one, min_one, x, y));
-        moves.addAll(bishop_rook_Helper(board, myPosition, min_one, add_one, x, y));
-        moves.addAll(bishop_rook_Helper(board, myPosition, min_one, min_one, x, y));
+        Function<Integer, Integer> addOne = (i) -> i + 1;
+        Function<Integer, Integer> minOne = (i) -> i - 1;
+        moves.addAll(bishopRookHelper(board, myPosition, addOne, addOne, x, y));
+        moves.addAll(bishopRookHelper(board, myPosition, addOne, minOne, x, y));
+        moves.addAll(bishopRookHelper(board, myPosition, minOne, addOne, x, y));
+        moves.addAll(bishopRookHelper(board, myPosition, minOne, minOne, x, y));
         return moves;
     }
 
-    private Collection<ChessMove> Rook(ChessBoard board, ChessPosition myPosition) {
+    private Collection<ChessMove> rook(ChessBoard board, ChessPosition myPosition) {
         var moves = new ArrayList<ChessMove>();
         var x = myPosition.getRow();
         var y = myPosition.getColumn();
-        Function<Integer, Integer> add_one = (i) -> i + 1;
-        Function<Integer, Integer> min_one = (i) -> i - 1;
-        Function<Integer, Integer> add_none = (i) -> i;
-        moves.addAll(bishop_rook_Helper(board, myPosition, add_one, add_none, x, y));
-        moves.addAll(bishop_rook_Helper(board, myPosition, add_none, add_one, x, y));
-        moves.addAll(bishop_rook_Helper(board, myPosition, min_one, add_none, x, y));
-        moves.addAll(bishop_rook_Helper(board, myPosition, add_none, min_one, x, y));
+        Function<Integer, Integer> addOne = (i) -> i + 1;
+        Function<Integer, Integer> minOne = (i) -> i - 1;
+        Function<Integer, Integer> addNone = (i) -> i;
+        moves.addAll(bishopRookHelper(board, myPosition, addOne, addNone, x, y));
+        moves.addAll(bishopRookHelper(board, myPosition, addNone, addOne, x, y));
+        moves.addAll(bishopRookHelper(board, myPosition, minOne, addNone, x, y));
+        moves.addAll(bishopRookHelper(board, myPosition, addNone, minOne, x, y));
         return moves;
     }
 
-    private Collection<ChessMove> bishop_rook_Helper(ChessBoard board, ChessPosition myPosition, Function<Integer, Integer> x_func, Function<Integer, Integer> y_func, int a, int b) {
+    private Collection<ChessMove> bishopRookHelper(ChessBoard board, ChessPosition myPosition, Function<Integer,
+                                                   Integer> xFunc, Function<Integer, Integer> yFunc, int a, int b) {
         var moves = new ArrayList<ChessMove>();
-        while (this.checkBounds(x_func.apply(a), y_func.apply(b))) {
-            var endPosition = new ChessPosition(x_func.apply(a), y_func.apply(b));
+        while (this.checkBounds(xFunc.apply(a), yFunc.apply(b))) {
+            var endPosition = new ChessPosition(xFunc.apply(a), yFunc.apply(b));
             if (board.getPiece(endPosition) == null) {
                 moves.add(new ChessMove(myPosition,endPosition));
-                a = x_func.apply(a); b = y_func.apply(b);
+                a = xFunc.apply(a); b = yFunc.apply(b);
             } else {
                 if (pieceColor != board.getPiece(endPosition).pieceColor) {
                     moves.add(new ChessMove(myPosition, endPosition));
@@ -117,7 +118,7 @@ public class ChessPiece {
     }
 
 
-    private Collection<ChessMove> Knight(ChessBoard board, ChessPosition myPosition) {
+    private Collection<ChessMove> knight(ChessBoard board, ChessPosition myPosition) {
         var moves = new ArrayList<ChessMove>();
         var x = myPosition.getRow();
         var y = myPosition.getColumn();
@@ -132,10 +133,10 @@ public class ChessPiece {
                 new ChessPosition(x - 1, y - 2)
         ));
         for (var pos : posMoves) {
-            var x_0 = pos.getRow();
-            var y_0 = pos.getColumn();
-            if (this.checkBounds(x_0, y_0)) {
-                var endPosition = new ChessPosition(x_0, y_0);
+            var x0 = pos.getRow();
+            var y0 = pos.getColumn();
+            if (this.checkBounds(x0, y0)) {
+                var endPosition = new ChessPosition(x0, y0);
                 if (board.getPiece(endPosition) == null) {
                     moves.add(new ChessMove(myPosition, endPosition));
                 } else {
@@ -148,7 +149,7 @@ public class ChessPiece {
         return moves;
     }
 
-    private Collection<ChessMove> King(ChessBoard board, ChessPosition myPosition) {
+    private Collection<ChessMove> king(ChessBoard board, ChessPosition myPosition) {
         var moves = new ArrayList<ChessMove>();
         var x = myPosition.getRow();
         var y = myPosition.getColumn();
@@ -158,10 +159,8 @@ public class ChessPiece {
                     var endPosition = new ChessPosition(i, j);
                     if (board.getPiece(endPosition) == null) {
                         moves.add(new ChessMove(myPosition,endPosition));
-                    } else {
-                        if (pieceColor != board.getPiece(endPosition).pieceColor) {
-                            moves.add(new ChessMove(myPosition, endPosition));
-                        }
+                    } else if ((pieceColor != board.getPiece(endPosition).pieceColor)) {
+                        moves.add(new ChessMove(myPosition, endPosition));
                     }
                 }
             }
@@ -169,69 +168,70 @@ public class ChessPiece {
         return moves;
     }
 
-    private Collection<ChessMove> Queen(ChessBoard board, ChessPosition myPosition) {
+    private Collection<ChessMove> queen(ChessBoard board, ChessPosition myPosition) {
         var x = myPosition.getRow();
         var y = myPosition.getColumn();
-        var moves = new ArrayList<ChessMove>(this.Bishop(board, myPosition));
-        moves.addAll(this.Rook(board, myPosition));
+        var moves = new ArrayList<ChessMove>(this.bishop(board, myPosition));
+        moves.addAll(this.rook(board, myPosition));
         return moves;
     }
 
-    private Collection<ChessMove> Pawn(ChessBoard board, ChessPosition myPosition) {
+    private Collection<ChessMove> pawn(ChessBoard board, ChessPosition myPosition) {
         var moves = new ArrayList<ChessMove>();
         var x = myPosition.getRow();
         var y = myPosition.getColumn();
-        Function<Integer, Integer> add_one = (i) -> i + 1;
-        Function<Integer, Integer> min_one = (i) -> i - 1;
-        Function<Integer, Integer> add_two = (i) -> i + 2;
-        Function<Integer, Integer> min_two = (i) -> i - 2;
-        Function<Integer, Integer> add_none = (i) -> i;
+        Function<Integer, Integer> addOne = (i) -> i + 1;
+        Function<Integer, Integer> minOne = (i) -> i - 1;
+        Function<Integer, Integer> addTwo = (i) -> i + 2;
+        Function<Integer, Integer> minTwo = (i) -> i - 2;
+        Function<Integer, Integer> addNone = (i) -> i;
 
         if (this.pieceColor == ChessGame.TeamColor.WHITE) {
             if (board.getPiece(new ChessPosition(x + 1, y)) == null) {
-                moves.addAll(pawnHelper(board, myPosition, add_one, add_none, x, y));
+                moves.addAll(pawnHelper(board, myPosition, addOne, addNone, x, y));
             } if (x == 2 && board.getPiece(new ChessPosition(x + 2, y)) == null && board.getPiece(new ChessPosition(x + 1, y)) == null) {
-                moves.addAll(pawnHelper(board, myPosition, add_two, add_none, x, y));
+                moves.addAll(pawnHelper(board, myPosition, addTwo, addNone, x, y));
             }
             if (this.checkBounds(x + 1, y + 1)) {
-                var piece_1 = board.getPiece(new ChessPosition(x + 1, y + 1));
-                if (piece_1 != null) {
-                    if (piece_1.pieceColor == ChessGame.TeamColor.BLACK) {moves.addAll(pawnHelper(board, myPosition, add_one, add_one, x, y));}
+                var piece1 = board.getPiece(new ChessPosition(x + 1, y + 1));
+                if (piece1 != null) {
+                    if (piece1.pieceColor == ChessGame.TeamColor.BLACK) {moves.addAll(pawnHelper(board, myPosition, addOne, addOne, x, y));}
                 }
             }
             if (this.checkBounds(x + 1, y -1)) {
-                var piece_2 = board.getPiece(new ChessPosition(x + 1, y - 1));
-                if (piece_2 != null) {
-                    if (piece_2.pieceColor == ChessGame.TeamColor.BLACK) {moves.addAll(pawnHelper(board, myPosition, add_one, min_one, x, y));}
+                var piece2 = board.getPiece(new ChessPosition(x + 1, y - 1));
+                if (piece2 != null) {
+                    if (piece2.pieceColor == ChessGame.TeamColor.BLACK) {moves.addAll(pawnHelper(board, myPosition, addOne, minOne, x, y));}
                 }
             }
 
         } else if (this.pieceColor == ChessGame.TeamColor.BLACK) {
             if (board.getPiece(new ChessPosition(x - 1, y)) == null) {
-                moves.addAll(pawnHelper(board, myPosition, min_one, add_none, x, y));
+                moves.addAll(pawnHelper(board, myPosition, minOne, addNone, x, y));
             } if (x == 7 && board.getPiece(new ChessPosition(x - 2, y)) == null && board.getPiece(new ChessPosition(x - 1, y)) == null) {
-                moves.addAll(pawnHelper(board, myPosition, min_two, add_none, x, y));
+                moves.addAll(pawnHelper(board, myPosition, minTwo, addNone, x, y));
             }
             if (this.checkBounds(x - 1, y + 1)) {
-                var piece_1 = board.getPiece(new ChessPosition(x - 1, y + 1));
-                if (piece_1 != null) {
-                    if (piece_1.pieceColor == ChessGame.TeamColor.WHITE) {moves.addAll(pawnHelper(board, myPosition, min_one, add_one, x, y));}
+                var piece1 = board.getPiece(new ChessPosition(x - 1, y + 1));
+                if (piece1 != null) {
+                    if (piece1.pieceColor == ChessGame.TeamColor.WHITE) {moves.addAll(pawnHelper(board, myPosition, minOne, addOne, x, y));}
                 }
             }
             if (this.checkBounds(x - 1, y - 1)) {
-                var piece_2 = board.getPiece(new ChessPosition(x - 1, y - 1));
-                if (piece_2 != null) {
-                    if (piece_2.pieceColor == ChessGame.TeamColor.WHITE) {moves.addAll(pawnHelper(board, myPosition, min_one, min_one, x, y));}
+                var piece2 = board.getPiece(new ChessPosition(x - 1, y - 1));
+                if (piece2 != null) {
+                    if (piece2.pieceColor == ChessGame.TeamColor.WHITE) {moves.addAll(pawnHelper(board, myPosition, minOne, minOne, x, y));}
                 }
             }
         }
         return moves;
     }
 
-    private Collection<ChessMove> pawnHelper (ChessBoard board, ChessPosition myPosition, Function<Integer, Integer> x_func, Function<Integer, Integer> y_func, int a, int b) {
+    private Collection<ChessMove> pawnHelper (ChessBoard board, ChessPosition myPosition, Function<Integer,
+                                              Integer> xFunc, Function<Integer, Integer> yFunc, int a, int b) {
         var moves = new ArrayList<ChessMove>();
-        if (this.checkBounds(x_func.apply(a), y_func.apply(b))) {
-            var endPosition = new ChessPosition(x_func.apply(a), y_func.apply(b));
+        if (this.checkBounds(xFunc.apply(a), yFunc.apply(b))) {
+            var endPosition = new ChessPosition(xFunc.apply(a), yFunc.apply(b));
             if (endPosition.getRow() == 8 || endPosition.getRow() == 1) {
                 moves.add(new ChessMove(myPosition, endPosition, PieceType.QUEEN));
                 moves.add(new ChessMove(myPosition, endPosition, PieceType.BISHOP));

@@ -12,20 +12,22 @@ import model.result.LogoutResult;
 import model.result.RegisterResult;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class UserServiceTest {
 
     private static UserService userService;
+    private static DeleteService deleteService;
 
-    @BeforeAll
-    public static void init() {
+    @BeforeEach
+    public void init() {
         userService = new UserService();
     }
 
     @Test
     public void registerSuccess() {
-        var result = userService.register(new RegisterRequest("erik", "something", "gmail"));
+        var result = userService.register(new RegisterRequest("erikjfjf", "something", "gmail"));
         Object RegisterResult = new RegisterResult("erik", "");
         Assertions.assertEquals(RegisterResult.getClass(), result.getClass());
     }
@@ -63,7 +65,7 @@ public class UserServiceTest {
 
     @Test
     public void logoutSuccess() {
-        GeneralApi res = userService.register(new RegisterRequest("erik", "something", "gmail"));
+        GeneralApi res = userService.register(new RegisterRequest("erikf", "something", "gmail"));
         var authToken = ((RegisterResult) res).authToken();
         GeneralApi result = userService.logout(new LogoutRequest(authToken));
         Object LogoutResult = new LogoutResult();
