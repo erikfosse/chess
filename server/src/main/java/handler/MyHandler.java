@@ -11,10 +11,10 @@ import io.javalin.http.Context;
 import model.request.GeneralApi;
 
 public class MyHandler {
-    public Object processRequest(@NotNull Context ctx, Class<?> RequestClass) throws BadRequestException {
-        var body_string = ctx.body();
+    public Object processRequest(@NotNull Context ctx, Class<?> requestClass) throws BadRequestException {
+        var bodyString = ctx.body();
         Gson gson = new Gson();
-        return gson.fromJson(body_string, RequestClass);
+        return gson.fromJson(bodyString, requestClass);
     }
 
     public void sendResult(@NotNull Context ctx, GeneralApi result, Class<?> resultClass) {

@@ -41,9 +41,9 @@ public class GameServiceTest {
         Object badRequestException = new BadRequestException();
         Assertions.assertEquals(badRequestException.getClass(), result.getClass());
 
-        var result_2 = gameService.createGame(null, new CreateGameRequest("GoodGame"));
+        var result2 = gameService.createGame(null, new CreateGameRequest("GoodGame"));
         Object badRequestException1 = new BadRequestException();
-        Assertions.assertEquals(badRequestException1.getClass(), result_2.getClass());
+        Assertions.assertEquals(badRequestException1.getClass(), result2.getClass());
     }
 
     @Test
@@ -61,9 +61,9 @@ public class GameServiceTest {
         Object badRequestException = new BadRequestException();
         Assertions.assertEquals(badRequestException.getClass(), result.getClass());
 
-        var result_1 = gameService.joinGame(auth, new JoinGameRequest("WHITE", null));
+        var result1 = gameService.joinGame(auth, new JoinGameRequest("WHITE", null));
         Object badRequestException1 = new BadRequestException();
-        Assertions.assertEquals(badRequestException1.getClass(), result_1.getClass());
+        Assertions.assertEquals(badRequestException1.getClass(), result1.getClass());
     }
 
     @Test
