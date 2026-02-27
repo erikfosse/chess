@@ -68,7 +68,7 @@ public class UserService {
         }
     }
 
-    public static String generateToken() {
+    private static String generateToken() {
         return UUID.randomUUID().toString();
     }
 }

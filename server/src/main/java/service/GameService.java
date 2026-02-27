@@ -81,7 +81,7 @@ public class GameService {
         }
     }
 
-    public static Object checkAuthData(String authToken) {
+    private static Object checkAuthData(String authToken) {
         AuthDao authdao = new AuthDao();
         AuthRecord authData = authdao.getAuth(authToken);
         return Objects.requireNonNullElseGet(authData, UnauthorizedException::new);

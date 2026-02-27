@@ -8,8 +8,6 @@ import model.exception.UnauthorizedException;
 import model.request.GeneralApi;
 import model.result.DeleteResult;
 
-import static service.GameService.checkAuthData;
-
 public class DeleteService {
     public GeneralApi delete() {
         GameDao gameDao = new GameDao();
