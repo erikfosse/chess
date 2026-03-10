@@ -1,18 +1,16 @@
 package service;
 
-import dataaccess.AuthDao;
-import dataaccess.GameDao;
-import dataaccess.UserDao;
-import model.AuthRecord;
-import model.exception.UnauthorizedException;
+import dataaccess.memory.MemoryAuthDao;
+import dataaccess.memory.MemoryGameDao;
+import dataaccess.memory.MemoryUserDao;
 import model.request.GeneralApi;
 import model.result.DeleteResult;
 
 public class DeleteService {
     public GeneralApi delete() {
-        GameDao gameDao = new GameDao();
-        AuthDao authDao = new AuthDao();
-        UserDao userDao = new UserDao();
+        MemoryGameDao gameDao = new MemoryGameDao();
+        MemoryAuthDao authDao = new MemoryAuthDao();
+        MemoryUserDao userDao = new MemoryUserDao();
         gameDao.deleteData();
         authDao.deleteData();
         userDao.deleteData();

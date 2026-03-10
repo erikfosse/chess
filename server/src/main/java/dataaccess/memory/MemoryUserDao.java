@@ -1,10 +1,10 @@
-package dataaccess;
+package dataaccess.memory;
 
 import dataaccess.interfaces.UserInterface;
 import db.UserData;
 import model.UserRecord;
 
-public class UserDao implements UserInterface {
+public class MemoryUserDao implements UserInterface {
 
     @Override
     public void addUser(String username, String password, String email) {

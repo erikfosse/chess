@@ -3,8 +3,8 @@ package service;
 import model.AuthRecord;
 import chess.ChessGame;
 import model.GameRecord;
-import dataaccess.AuthDao;
-import dataaccess.GameDao;
+import dataaccess.memory.MemoryAuthDao;
+import dataaccess.memory.MemoryGameDao;
 import model.exception.AlreadyTakenException;
 import model.exception.BadRequestException;
 import model.exception.UnauthorizedException;
@@ -15,7 +15,6 @@ import model.request.ListGamesRequest;
 import model.result.CreateGameResult;
 import model.result.JoinGameResult;
 import model.result.ListGamesResult;
-import model.result.SingleGameResult;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -29,7 +28,7 @@ public class GameService {
         if (result instanceof UnauthorizedException exception) {
             return exception;
         } else if (result instanceof AuthRecord auth) {
-            GameDao gameDao = new GameDao();
+            MemoryGameDao gameDao = new MemoryGameDao();
             ChessGame chessGame = new ChessGame();
             gameDao.addGame(request.gameName(), chessGame);
             int gameID = gameDao.getNumGames();
@@ -49,7 +48,7 @@ public class GameService {
         if (result instanceof UnauthorizedException exception) {
             return exception;
         } else if (result instanceof AuthRecord auth) {
-            GameDao gameDao = new GameDao();
+            MemoryGameDao gameDao = new MemoryGameDao();
             try {
                 gameDao.editGame(request.gameID(), request.playerColor(), auth.username());
             } catch (AlreadyTakenException e) {
@@ -69,7 +68,7 @@ public class GameService {
         if (result instanceof UnauthorizedException exception) {
             return exception;
         } else if (result instanceof AuthRecord auth) {
-            GameDao gameDao = new GameDao();
+            MemoryGameDao gameDao = new MemoryGameDao();
             var username = auth.username();
             var gamesList = gameDao.getAllGames(username);
             if (gamesList == null) {
@@ -82,7 +81,7 @@ public class GameService {
     }
 
     private static Object checkAuthData(String authToken) {
-        AuthDao authdao = new AuthDao();
+        MemoryAuthDao authdao = new MemoryAuthDao();
         AuthRecord authData = authdao.getAuth(authToken);
         return Objects.requireNonNullElseGet(authData, UnauthorizedException::new);
     }

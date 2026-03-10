@@ -1,8 +1,8 @@
 package service;
 
-import dataaccess.AuthDao;
-import dataaccess.GameDao;
-import dataaccess.UserDao;
+import dataaccess.memory.MemoryAuthDao;
+import dataaccess.memory.MemoryGameDao;
+import dataaccess.memory.MemoryUserDao;
 import model.request.CreateGameRequest;
 import model.request.GeneralApi;
 import model.request.LoginRequest;
@@ -34,9 +34,9 @@ public class DeleteServiceTest {
         gameService.createGame(auth, new CreateGameRequest("GoodGame"));
         deleteService.delete();
 
-        UserDao userdao = new UserDao();
-        AuthDao authdao = new AuthDao();
-        GameDao gameDao = new GameDao();
+        MemoryUserDao userdao = new MemoryUserDao();
+        MemoryAuthDao authdao = new MemoryAuthDao();
+        MemoryGameDao gameDao = new MemoryGameDao();
         Assertions.assertNull(userdao.getUser("erik"));
         Assertions.assertNull(authdao.getAuth("erik"));
         Assertions.assertEquals(0, gameDao.getNumGames());
@@ -50,9 +50,9 @@ public class DeleteServiceTest {
         String auth = ((RegisterResult) reg).authToken();
         gameService.createGame(auth, new CreateGameRequest("GoodGame"));
 
-        UserDao userdao = new UserDao();
-        AuthDao authdao = new AuthDao();
-        GameDao gameDao = new GameDao();
+        MemoryUserDao userdao = new MemoryUserDao();
+        MemoryAuthDao authdao = new MemoryAuthDao();
+        MemoryGameDao gameDao = new MemoryGameDao();
         Assertions.assertNotNull(userdao.getUser("erik"));
         Assertions.assertNotEquals(0, gameDao.getNumGames());
     }

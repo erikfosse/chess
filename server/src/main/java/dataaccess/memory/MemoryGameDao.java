@@ -1,4 +1,4 @@
-package dataaccess;
+package dataaccess.memory;
 
 import chess.ChessGame;
 import model.GameRecord;
@@ -8,7 +8,7 @@ import model.exception.AlreadyTakenException;
 
 import java.util.Collection;
 
-public class GameDao implements GameInterface {
+public class MemoryGameDao implements GameInterface {
 
     @Override
     public void addGame(String gameName, ChessGame game) {

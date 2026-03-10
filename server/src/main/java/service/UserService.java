@@ -2,8 +2,8 @@ package service;
 
 import model.AuthRecord;
 import model.UserRecord;
-import dataaccess.AuthDao;
-import dataaccess.UserDao;
+import dataaccess.memory.MemoryAuthDao;
+import dataaccess.memory.MemoryUserDao;
 import model.exception.*;
 import model.request.GeneralApi;
 import model.request.LoginRequest;
@@ -24,8 +24,8 @@ public class UserService {
         if (username == null || password == null || email == null) {
             return new BadRequestException();
         }
-        UserDao userdao = new UserDao();
-        AuthDao authdao = new AuthDao();
+        MemoryUserDao userdao = new MemoryUserDao();
+        MemoryAuthDao authdao = new MemoryAuthDao();
         UserRecord user = userdao.getUser(username);
         if (user != null) {
             return new AlreadyTakenException();
@@ -43,8 +43,8 @@ public class UserService {
         if (username == null || password == null) {
             return new BadRequestException();
         }
-        UserDao userdao = new UserDao();
-        AuthDao authdao = new AuthDao();
+        MemoryUserDao userdao = new MemoryUserDao();
+        MemoryAuthDao authdao = new MemoryAuthDao();
 
         UserRecord user = userdao.getUser(username);
         if (user == null || !user.password().equals(password)) {
@@ -58,7 +58,7 @@ public class UserService {
 
     public GeneralApi logout(LogoutRequest logoutRequest) {
         String authToken = logoutRequest.authToken();
-        AuthDao authdao = new AuthDao();
+        MemoryAuthDao authdao = new MemoryAuthDao();
         AuthRecord authData = authdao.getAuth(authToken);
         if (authData == null) {
             return new UnauthorizedException();

@@ -1,10 +1,10 @@
-package dataaccess;
+package dataaccess.memory;
 
 import model.AuthRecord;
 import dataaccess.interfaces.AuthInterface;
 import db.AuthData;
 
-public class AuthDao implements AuthInterface {
+public class MemoryAuthDao implements AuthInterface {
 
     @Override
     public void addAuth(String username, String authToken) {
