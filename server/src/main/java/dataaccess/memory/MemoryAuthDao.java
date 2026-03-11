@@ -21,6 +21,7 @@ public class MemoryAuthDao implements AuthInterface {
         AuthData.delAuth(authToken);
     }
 
+    @Override
     public void deleteData() {
         AuthData.deleteData();
     }

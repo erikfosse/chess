@@ -15,8 +15,6 @@ public class SQLUserDao implements UserInterface {
     private Connection conn;
 
     public SQLUserDao() throws DataAccessException, SQLException {
-        DatabaseManager.createDatabase();
-        DatabaseManager.initializeTables();
         this.conn = DatabaseManager.getConnection();
     }
 
@@ -52,13 +50,10 @@ public class SQLUserDao implements UserInterface {
     @Override
     public void deleteData() throws SQLException {
         try {
-            var preparedStatement = conn.prepareStatement("DROP TABLE userData");
+            var preparedStatement = conn.prepareStatement("TRUNCATE TABLE userData");
             preparedStatement.executeUpdate();
-            preparedStatement = conn.prepareStatement("")
         } catch (SQLException e) {
             throw e;
         }
-
-        }
-    };
+    }
 }

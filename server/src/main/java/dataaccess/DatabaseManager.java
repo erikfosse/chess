@@ -75,8 +75,8 @@ public class DatabaseManager {
                     """
                        CREATE TABLE IF NOT EXISTS authData (
                            authID INT NOT NULL AUTO_INCREMENT,
+                           username VARCHAR(255) NOT NULL,
                            authToken VARCHAR(255) NOT NULL,
-                           userId INT NOT NULL,
                            PRIMARY KEY (authID)
                        """,
                     """
