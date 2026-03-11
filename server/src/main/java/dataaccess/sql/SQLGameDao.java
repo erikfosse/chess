@@ -104,15 +104,16 @@ public class SQLGameDao implements GameInterface {
 
     @Override
     public void editGame(Integer gameID, String playerColor, String username) throws SQLException {
-        try (var ps = conn.prepareStatement(
-                "UPDATE gamedata SET ?=? WHERE gameID=?")) {
-            if (playerColor.equals("WHITE")) {
-                ps.setString(1, "whiteUserName");
-            } else {
-                ps.setString(1, "blackUserName");
-            }
-            ps.setString(2, username);
-            ps.setInt(3, gameID);
+        String color = "";
+        if (playerColor.equals("WHITE")) {
+            color = "whiteUserName";
+        } else {
+            color = "blackUserName";
+        }
+        String sql = String.format("UPDATE gamedata SET %s=? WHERE gameID=?", color);
+        try (var ps = conn.prepareStatement(sql)) {
+            ps.setString(1, username);
+            ps.setInt(2, gameID);
             ps.executeUpdate();
         }
         int userID = findUserID(username);
@@ -128,6 +129,9 @@ public class SQLGameDao implements GameInterface {
     @Override
     public void deleteData() throws SQLException {
         try (var ps = conn.prepareStatement("TRUNCATE TABLE gamedata")) {
+            ps.executeUpdate();
+        }
+        try (var ps = conn.prepareStatement("TRUNCATE TABLE usergamerelation")) {
             ps.executeUpdate();
         }
     }

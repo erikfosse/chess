@@ -29,17 +29,22 @@ public class SQLAuthDao implements AuthInterface {
     }
 
     @Override
-    public AuthRecord getAuth(String username) throws SQLException {
+    public AuthRecord getAuth(String authToken) throws SQLException {
         try (var preparedStatement = conn.prepareStatement(
-                "SELECT username, authToken FROM authData WHERE username=?"
+                "SELECT username FROM authData WHERE authToken=?"
         )) {
-            preparedStatement.setString(1, username);
+            preparedStatement.setString(1, authToken);
             try (var rs = preparedStatement.executeQuery()) {
-                String authToken = "";
+                String username = "";
                 while (rs.next()) {
-                    authToken = rs.getString("authToken");
+                    username = rs.getString("username");
                 }
-                return new AuthRecord(username, authToken);
+                if (username.isEmpty()) {
+                    return null;
+                }
+                else {
+                    return new AuthRecord(username, authToken);
+                }
             }
         }
     }

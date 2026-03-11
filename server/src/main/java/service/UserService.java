@@ -12,6 +12,7 @@ import model.request.RegisterRequest;
 import model.result.LoginResult;
 import model.result.LogoutResult;
 import model.result.RegisterResult;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.SQLException;
 import java.util.UUID;
@@ -48,7 +49,7 @@ public class UserService {
         SQLAuthDao authdao = new SQLAuthDao();
 
         UserRecord user = userdao.getUser(username);
-        if (user == null || !user.password().equals(password)) {
+        if (user == null || !BCrypt.checkpw(password, user.password())) {
             return new UnauthorizedException();
         } else {
             String authToken = generateToken();
