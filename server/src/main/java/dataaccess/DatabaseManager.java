@@ -3,6 +3,7 @@ package dataaccess;
 import model.exception.DataAccessException;
 
 import java.sql.*;
+import java.util.List;
 import java.util.Properties;
 
 public class DatabaseManager {
@@ -51,6 +52,48 @@ public class DatabaseManager {
             return conn;
         } catch (SQLException ex) {
             throw new DataAccessException("failed to get connection", ex);
+        }
+    }
+
+    public static void initializeTables() throws SQLException, DataAccessException {
+        try (var conn = getConnection()) {
+            List<String> tableNames = List.of(
+                    "userData",
+                    "authData",
+                    "gameData",
+                    "userGameData"
+            );
+            List<String> tables = List.of(
+                    """
+                       CREATE TABLE IF NOT EXISTS userData (
+                           userId INT NOT NULL AUTO_INCREMENT,
+                           username VARCHAR(255) NOT NULL,
+                           password VARCHAR(255) NOT NULL,
+                           email VARCHAR(255)
+                       """,
+                    """
+                       CREATE TABLE IF NOT EXISTS authData (
+                           authID INT NOT NULL AUTO_INCREMENT,
+                           authToken VARCHAR(255) NOT NULL,
+                           userId INT NOT NULL
+                       """,
+                    """
+                       CREATE TABLE IF NOT EXISTS gameData (
+                           gameID INT NOT NULL AUTO_INCREMENT,
+                           jsonGame VARCHAR(1000) NOT NULL
+                       """,
+                    """
+                       CREATE TABLE IF NOT EXISTS userGameRelation (
+                           gameID INT NOT NULL,
+                           gameID INT NOT NULL
+                       """
+            );
+            for (int i = 0; i <= 4; i++) {
+                conn.setCatalog(tableNames.get(i));
+                try (var createTableStatement = conn.prepareStatement(tables.get(i))) {
+                    createTableStatement.executeUpdate();
+                }
+            }
         }
     }
 

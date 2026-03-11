@@ -22,12 +22,15 @@ public class MemoryGameDao implements GameInterface {
     public Collection<GameRecord> getAllGames (String username) {
         return GameData.getAllGames(username);
     }
+    @Override
     public Integer getNumGames() {
         return GameData.getNumGames();
     }
+    @Override
     public void editGame(Integer gameID, String playerColor, String username) throws AlreadyTakenException {
         GameData.editGame(gameID, playerColor, username);
     }
+    @Override
     public void deleteData() {
         GameData.deleteData();
     }
