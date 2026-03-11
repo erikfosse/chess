@@ -24,6 +24,7 @@ public class SQLAuthDao implements AuthInterface {
                 "INSERT INTO authData (username, authToken) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setString(1, username);
             preparedStatement.setString(2, authToken);
+            preparedStatement.executeUpdate();
         }
     }
 
