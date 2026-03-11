@@ -1,15 +1,20 @@
 package server;
 
+import dataaccess.DatabaseManager;
 import handler.*;
 import io.javalin.Javalin;
+import model.exception.DataAccessException;
+
+import java.sql.SQLException;
 
 
 public class Server {
 
     private final Javalin javalin;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws DataAccessException, SQLException {
         Server server = new Server();
+        DatabaseManager.createDatabase();
         server.run(8080);
     }
 

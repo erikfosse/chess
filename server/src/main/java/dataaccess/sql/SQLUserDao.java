@@ -49,11 +49,8 @@ public class SQLUserDao implements UserInterface {
     }
     @Override
     public void deleteData() throws SQLException {
-        try {
-            var preparedStatement = conn.prepareStatement("TRUNCATE TABLE userData");
+        try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE userData")) {
             preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            throw e;
         }
     }
 }
