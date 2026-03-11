@@ -5,6 +5,7 @@ import model.GameRecord;
 import model.UserRecord;
 import model.exception.AlreadyTakenException;
 import model.exception.BadRequestException;
+import model.exception.DataAccessException;
 import model.request.*;
 import model.result.*;
 import org.junit.jupiter.api.Assertions;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class GameServiceTest {
@@ -21,7 +23,7 @@ public class GameServiceTest {
     private static String auth;
 
     @BeforeAll
-    public static void init() {
+    public static void init() throws SQLException, DataAccessException {
         gameService = new GameService();
         userService = new UserService();
         GeneralApi reg = userService.register(new RegisterRequest("erik", "something", "gmail"));
@@ -29,14 +31,14 @@ public class GameServiceTest {
     }
 
     @Test
-    public void successCreation() {
+    public void successCreation() throws SQLException, DataAccessException {
         var result = gameService.createGame(auth, new CreateGameRequest("GoodGame"));
         Object createGameResult = new CreateGameResult(1);
         Assertions.assertEquals(createGameResult.getClass(), result.getClass());
     }
 
     @Test
-    public void creationBadRequest() {
+    public void creationBadRequest() throws SQLException, DataAccessException {
         var result = gameService.createGame(auth, new CreateGameRequest(null));
         Object badRequestException = new BadRequestException();
         Assertions.assertEquals(badRequestException.getClass(), result.getClass());
@@ -47,7 +49,7 @@ public class GameServiceTest {
     }
 
     @Test
-    public void successJoinGame() {
+    public void successJoinGame() throws SQLException, DataAccessException {
         gameService.createGame(auth, new CreateGameRequest("GoodGame"));
         var result = gameService.joinGame(auth, new JoinGameRequest("WHITE", 1));
         Object joinGameResult = new JoinGameResult();
@@ -55,7 +57,7 @@ public class GameServiceTest {
     }
 
     @Test
-    public void joinGameBadRequest() {
+    public void joinGameBadRequest() throws SQLException, DataAccessException {
         gameService.createGame(auth, new CreateGameRequest("GoodGame"));
         var result = gameService.joinGame(auth, new JoinGameRequest(null, 1));
         Object badRequestException = new BadRequestException();
@@ -67,7 +69,7 @@ public class GameServiceTest {
     }
 
     @Test
-    public void successListGames() {
+    public void successListGames() throws SQLException, DataAccessException {
         gameService.createGame(auth, new CreateGameRequest("Game_1"));
         gameService.joinGame(auth, new JoinGameRequest("WHITE", 1));
         var result = gameService.listGames(new ListGamesRequest(auth));
@@ -76,7 +78,7 @@ public class GameServiceTest {
     }
 
     @Test
-    public void listGamesBadRequest() {
+    public void listGamesBadRequest() throws SQLException, DataAccessException {
         gameService.createGame(auth, new CreateGameRequest("Game_1"));
         gameService.joinGame(auth, new JoinGameRequest("WHITE", 1));
         var result = gameService.listGames(new ListGamesRequest(null));

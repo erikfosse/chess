@@ -1,16 +1,19 @@
 package service;
 
-import dataaccess.memory.MemoryAuthDao;
-import dataaccess.memory.MemoryGameDao;
-import dataaccess.memory.MemoryUserDao;
+import dataaccess.sql.SQLAuthDao;
+import dataaccess.sql.SQLGameDao;
+import dataaccess.sql.SQLUserDao;
+import model.exception.DataAccessException;
 import model.request.GeneralApi;
 import model.result.DeleteResult;
 
+import java.sql.SQLException;
+
 public class DeleteService {
-    public GeneralApi delete() {
-        MemoryGameDao gameDao = new MemoryGameDao();
-        MemoryAuthDao authDao = new MemoryAuthDao();
-        MemoryUserDao userDao = new MemoryUserDao();
+    public GeneralApi delete() throws SQLException, DataAccessException {
+        SQLGameDao gameDao = new SQLGameDao();
+        SQLAuthDao authDao = new SQLAuthDao();
+        SQLUserDao userDao = new SQLUserDao();
         gameDao.deleteData();
         authDao.deleteData();
         userDao.deleteData();

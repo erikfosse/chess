@@ -82,7 +82,7 @@ public class DatabaseManager {
                            whiteUserName VARCHAR(255),
                            blackUserName VARCHAR(255),
                            gameName VARCHAR(255) NOT NULL,
-                           jsonGame VARCHAR(1000) NOT NULL,
+                           jsonGame VARCHAR(3000) NOT NULL,
                            PRIMARY KEY (gameID)
                            )
                        """,

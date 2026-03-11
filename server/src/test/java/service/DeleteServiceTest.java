@@ -3,6 +3,7 @@ package service;
 import dataaccess.memory.MemoryAuthDao;
 import dataaccess.memory.MemoryGameDao;
 import dataaccess.memory.MemoryUserDao;
+import model.exception.DataAccessException;
 import model.request.CreateGameRequest;
 import model.request.GeneralApi;
 import model.request.LoginRequest;
@@ -12,6 +13,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+
+import java.sql.SQLException;
 
 public class DeleteServiceTest {
 
@@ -28,7 +31,7 @@ public class DeleteServiceTest {
 
     @Test
     @Order(1)
-    public void successDelete() {
+    public void successDelete() throws SQLException, DataAccessException {
         GeneralApi reg = userService.register(new RegisterRequest("erikf", "somethingf", "gmail"));
         String auth = ((RegisterResult) reg).authToken();
         gameService.createGame(auth, new CreateGameRequest("GoodGame"));
@@ -44,7 +47,7 @@ public class DeleteServiceTest {
 
     @Test
     @Order(2)
-    public void failDelete() {
+    public void failDelete() throws SQLException, DataAccessException {
         GeneralApi reg = userService.register(new RegisterRequest("erik", "something", "gmail"));
         userService.login(new LoginRequest("erik", "something"));
         String auth = ((RegisterResult) reg).authToken();

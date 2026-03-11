@@ -2,6 +2,7 @@ package service;
 
 import model.exception.AlreadyTakenException;
 import model.exception.BadRequestException;
+import model.exception.DataAccessException;
 import model.exception.UnauthorizedException;
 import model.request.GeneralApi;
 import model.request.LoginRequest;
@@ -15,6 +16,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.sql.SQLException;
+
 public class UserServiceTest {
 
     private static UserService userService;
@@ -26,21 +29,21 @@ public class UserServiceTest {
     }
 
     @Test
-    public void registerSuccess() {
+    public void registerSuccess() throws SQLException, DataAccessException {
         var result = userService.register(new RegisterRequest("erikjfjf", "something", "gmail"));
         Object registerResult = new RegisterResult("erik", "");
         Assertions.assertEquals(registerResult.getClass(), result.getClass());
     }
 
     @Test
-    public void registerBadRequest() {
+    public void registerBadRequest() throws SQLException, DataAccessException {
         var result = userService.register(new RegisterRequest("erik", null, "gmail"));
         Object badRequestException = new BadRequestException();
         Assertions.assertEquals(badRequestException.getClass(), result.getClass());
     }
 
     @Test
-    public void registerAlreadyTaken() {
+    public void registerAlreadyTaken() throws SQLException, DataAccessException {
         userService.register(new RegisterRequest("erik", "thing", "gmail"));
         var result = userService.register(new RegisterRequest("erik", "something", "gmail"));
         Object alreadyTakenException = new AlreadyTakenException();
@@ -48,7 +51,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void loginSuccess() {
+    public void loginSuccess() throws SQLException, DataAccessException {
         userService.register(new RegisterRequest("erik", "something", "gmail"));
         var result = userService.login(new LoginRequest("erik", "something"));
         Object loginResult = new LoginResult("erik", "");
@@ -56,7 +59,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void loginBadRequest() {
+    public void loginBadRequest() throws SQLException, DataAccessException {
         userService.register(new RegisterRequest("erik", "something", "gmail"));
         var result = userService.login(new LoginRequest(null, "something"));
         Object badRequestException = new BadRequestException();
@@ -64,7 +67,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void logoutSuccess() {
+    public void logoutSuccess() throws SQLException, DataAccessException {
         GeneralApi res = userService.register(new RegisterRequest("erikf", "something", "gmail"));
         var authToken = ((RegisterResult) res).authToken();
         GeneralApi result = userService.logout(new LogoutRequest(authToken));
@@ -73,7 +76,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void logoutBadRequest() {
+    public void logoutBadRequest() throws SQLException, DataAccessException {
         userService.register(new RegisterRequest("erik", "something", "gmail"));
         GeneralApi result = userService.logout(new LogoutRequest(null));
         Object unauthorizedException = new UnauthorizedException();

@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collection;
 
 public class SQLGameDao implements GameInterface {
@@ -45,7 +46,7 @@ public class SQLGameDao implements GameInterface {
     @Override
     public GameRecord getGame(Integer gameID) throws SQLException {
         try (var ps = conn.prepareStatement(
-            "SELECT gameID, jsonGame FROM gameData WHERE gameID=?"
+            "SELECT * FROM gameData WHERE gameID=?"
         )) {
             ps.setInt(1, gameID);
             try (var rs = ps.executeQuery()) {
@@ -66,8 +67,34 @@ public class SQLGameDao implements GameInterface {
     }
 
     @Override
-    public Collection<GameRecord> getAllGames (String username) {
-
+    public Collection<GameRecord> getAllGames (String username) throws SQLException {
+        ArrayList<GameRecord> allGames = new ArrayList<>();
+        int userID = findUserID(username);
+        try (var ps = conn.prepareStatement(
+                """
+                        SELECT * FROM gamedata JOIN usergamerelation
+                        WHERE gamedata.gameID = usergamerelation.gameID
+                        AND usergamerelation.userID = ?;
+                        """
+        )) {
+            ps.setInt(1, userID);
+            try (var rs = ps.executeQuery()) {
+                int gameID = 0;
+                String json = "";
+                String white = "";
+                String black = "";
+                String gameName = "";
+                while (rs.next()) {
+                    gameID = rs.getInt("gameID");
+                    white = rs.getString("whiteUserName");
+                    black = rs.getString("blackUserName");
+                    gameName = rs.getString("gameName");
+                    json = rs.getString("jsonGame");
+                    ChessGame game = new Gson().fromJson(json, ChessGame.class);
+                    allGames.add(new GameRecord(gameID, white, black, gameName, game));
+                }
+            } return allGames;
+        }
     }
 
     @Override
@@ -86,11 +113,15 @@ public class SQLGameDao implements GameInterface {
             }
             ps.setString(2, username);
             ps.setInt(3, gameID);
+            ps.executeUpdate();
         }
+        int userID = findUserID(username);
         try (var ps = conn.prepareStatement(
                 "INSERT INTO usergamerelation (userID, gameID) VALUES (?, ?)"
-                )) {
-
+        )) {
+            ps.setInt(1, userID);
+            ps.setInt(2, gameID);
+            ps.executeUpdate();
         }
     }
 
@@ -98,6 +129,21 @@ public class SQLGameDao implements GameInterface {
     public void deleteData() throws SQLException {
         try (var ps = conn.prepareStatement("TRUNCATE TABLE gamedata")) {
             ps.executeUpdate();
+        }
+    }
+
+    private Integer findUserID(String username) throws SQLException {
+        try (var ps = conn.prepareStatement(
+                "SELECT userID FROM userdata WHERE username=?"
+        )) {
+            ps.setString(1, username);
+            int userID = 0;
+            try (var rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    userID = rs.getInt("userID");
+                }
+                return userID;
+            }
         }
     }
 }
