@@ -9,19 +9,22 @@ import model.exception.AlreadyTakenException;
 import model.exception.DataAccessException;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Collection;
 
 public class SQLGameDao implements GameInterface {
 
     private Connection conn;
 
-    public SQLGameDao() throws DataAccessException {
+    public SQLGameDao() throws DataAccessException, SQLException {
         DatabaseManager.createDatabase();
+        DatabaseManager.initializeTables();
+        this.conn = DatabaseManager.getConnection();
     }
 
     @Override
     public void addGame(String gameName, ChessGame game) {
-
+        try (var preparedStatement = conn.prepareStatement("INSERT INTO "))
     }
     @Override
     public GameRecord getGame(Integer gameID) {

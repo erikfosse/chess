@@ -10,12 +10,12 @@ public class MemoryUserDao implements UserInterface {
     public void addUser(String username, String password, String email) {
         UserData.addUser(new UserRecord(username, password, email));
     }
-
     @Override
     public UserRecord getUser(String username) {
         return UserData.getUser(username);
     }
 
+    @Override
     public void deleteData() {
         UserData.deleteData();
     }

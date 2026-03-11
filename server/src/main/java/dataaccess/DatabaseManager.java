@@ -66,21 +66,24 @@ public class DatabaseManager {
             List<String> tables = List.of(
                     """
                        CREATE TABLE IF NOT EXISTS userData (
-                           userId INT NOT NULL AUTO_INCREMENT,
+                           userID INT NOT NULL AUTO_INCREMENT,
                            username VARCHAR(255) NOT NULL,
                            password VARCHAR(255) NOT NULL,
-                           email VARCHAR(255)
+                           email VARCHAR(255),
+                           PRIMARY KEY (userID)
                        """,
                     """
                        CREATE TABLE IF NOT EXISTS authData (
                            authID INT NOT NULL AUTO_INCREMENT,
                            authToken VARCHAR(255) NOT NULL,
-                           userId INT NOT NULL
+                           userId INT NOT NULL,
+                           PRIMARY KEY (authID)
                        """,
                     """
                        CREATE TABLE IF NOT EXISTS gameData (
                            gameID INT NOT NULL AUTO_INCREMENT,
-                           jsonGame VARCHAR(1000) NOT NULL
+                           jsonGame VARCHAR(1000) NOT NULL,
+                           PRIMARY KEY (gameID)
                        """,
                     """
                        CREATE TABLE IF NOT EXISTS userGameRelation (
@@ -88,7 +91,7 @@ public class DatabaseManager {
                            gameID INT NOT NULL
                        """
             );
-            for (int i = 0; i <= 4; i++) {
+            for (int i = 0; i < 4; i++) {
                 conn.setCatalog(tableNames.get(i));
                 try (var createTableStatement = conn.prepareStatement(tables.get(i))) {
                     createTableStatement.executeUpdate();
