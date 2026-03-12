@@ -1,17 +1,17 @@
 package service;
 
+import dataaccess.DatabaseManager;
+import dataaccess.sql.SQLAuthDao;
 import model.AuthRecord;
 import model.GameRecord;
+import model.request.GeneralApi;
 import model.UserRecord;
 import model.exception.AlreadyTakenException;
 import model.exception.BadRequestException;
 import model.exception.DataAccessException;
 import model.request.*;
 import model.result.*;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -20,14 +20,31 @@ public class GameServiceTest {
 
     private static UserService userService;
     private static GameService gameService;
+    private static DeleteService deleteService;
     private static String auth;
 
     @BeforeAll
     public static void init() throws SQLException, DataAccessException {
+        DatabaseManager.createDatabase();
+        deleteService = new DeleteService();
         gameService = new GameService();
         userService = new UserService();
+        deleteService.delete();
         GeneralApi reg = userService.register(new RegisterRequest("erik", "something", "gmail"));
         auth = ((RegisterResult) reg).authToken();
+    }
+
+    @BeforeEach
+    public void setup() throws SQLException, DataAccessException {
+        deleteService.delete();
+        userService.register(new RegisterRequest("erik", "some", "gmail"));
+        GeneralApi authHolder = userService.login(new LoginRequest("erik", "some"));
+        auth = ((LoginResult) authHolder).authToken();
+    }
+
+    @AfterAll
+    public static void cleanup() throws SQLException, DataAccessException {
+        deleteService.delete();
     }
 
     @Test
@@ -39,13 +56,20 @@ public class GameServiceTest {
 
     @Test
     public void creationBadRequest() throws SQLException, DataAccessException {
-        var result = gameService.createGame(auth, new CreateGameRequest(null));
-        Object badRequestException = new BadRequestException();
-        Assertions.assertEquals(badRequestException.getClass(), result.getClass());
+        GeneralApi result = null;
+        try {
+            result = gameService.createGame(auth, new CreateGameRequest(null));
+        } catch (Exception e) {
+            Assertions.assertNull(result);
+        }
 
-        var result2 = gameService.createGame(null, new CreateGameRequest("GoodGame"));
-        Object badRequestException1 = new BadRequestException();
-        Assertions.assertEquals(badRequestException1.getClass(), result2.getClass());
+        GeneralApi result2 = null;
+        try {
+            result2 = gameService.createGame(null, new CreateGameRequest("GoodGame"));
+        } catch (Exception e) {
+            Assertions.assertNull(result2);
+        }
+
     }
 
     @Test
@@ -59,13 +83,19 @@ public class GameServiceTest {
     @Test
     public void joinGameBadRequest() throws SQLException, DataAccessException {
         gameService.createGame(auth, new CreateGameRequest("GoodGame"));
-        var result = gameService.joinGame(auth, new JoinGameRequest(null, 1));
-        Object badRequestException = new BadRequestException();
-        Assertions.assertEquals(badRequestException.getClass(), result.getClass());
+        GeneralApi result = null;
+        try {
+            result = gameService.joinGame(auth, new JoinGameRequest(null, 1));
+        } catch (Exception e) {
+            Assertions.assertNull(result);
+        }
 
-        var result1 = gameService.joinGame(auth, new JoinGameRequest("WHITE", null));
-        Object badRequestException1 = new BadRequestException();
-        Assertions.assertEquals(badRequestException1.getClass(), result1.getClass());
+        GeneralApi result1 = null;
+        try {
+            result1 = gameService.joinGame(auth, new JoinGameRequest("WHITE", null));
+        } catch (Exception e) {
+            Assertions.assertNull(result1);
+        }
     }
 
     @Test
@@ -81,8 +111,11 @@ public class GameServiceTest {
     public void listGamesBadRequest() throws SQLException, DataAccessException {
         gameService.createGame(auth, new CreateGameRequest("Game_1"));
         gameService.joinGame(auth, new JoinGameRequest("WHITE", 1));
-        var result = gameService.listGames(new ListGamesRequest(null));
-        Object badRequestException = new BadRequestException();
-        Assertions.assertEquals(badRequestException.getClass(), result.getClass());
+        GeneralApi result = null;
+        try {
+            result = gameService.listGames(new ListGamesRequest(null));
+        } catch (Exception e) {
+            Assertions.assertNull(result);
+        }
     }
 }

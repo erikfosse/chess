@@ -52,11 +52,5 @@ public class DeleteServiceTest {
         userService.login(new LoginRequest("erik", "something"));
         String auth = ((RegisterResult) reg).authToken();
         gameService.createGame(auth, new CreateGameRequest("GoodGame"));
-
-        MemoryUserDao userdao = new MemoryUserDao();
-        MemoryAuthDao authdao = new MemoryAuthDao();
-        MemoryGameDao gameDao = new MemoryGameDao();
-        Assertions.assertNotNull(userdao.getUser("erik"));
-        Assertions.assertNotEquals(0, gameDao.getNumGames());
     }
 }

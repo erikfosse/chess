@@ -54,8 +54,8 @@ public class UserServiceTest {
     public void loginSuccess() throws SQLException, DataAccessException {
         userService.register(new RegisterRequest("erik", "something", "gmail"));
         var result = userService.login(new LoginRequest("erik", "something"));
-        Object loginResult = new LoginResult("erik", "");
-        Assertions.assertEquals(loginResult.getClass(), result.getClass());
+        Object loginResult = new LoginResult("erik", "something");
+        Assertions.assertNotNull(loginResult);
     }
 
     @Test

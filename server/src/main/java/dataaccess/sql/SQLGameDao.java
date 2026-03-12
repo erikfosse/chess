@@ -5,8 +5,6 @@ import com.google.gson.Gson;
 import dataaccess.DatabaseManager;
 import dataaccess.interfaces.GameInterface;
 import model.GameRecord;
-import model.exception.AlreadyTakenException;
-import model.exception.BadRequestException;
 import model.exception.DataAccessException;
 import model.exception.SQLConnException;
 
@@ -27,6 +25,11 @@ public class SQLGameDao implements GameInterface {
         this.conn = DatabaseManager.getConnection();
         userDao = new SQLUserDao();
         this.numGames = 0;
+    }
+
+    @Override
+    public Integer getNumGames() {
+        return numGames;
     }
 
     @Override
@@ -105,11 +108,6 @@ public class SQLGameDao implements GameInterface {
         } catch (SQLException e) {
             throw new SQLConnException();
         }
-    }
-
-    @Override
-    public Integer getNumGames() {
-        return numGames;
     }
 
     @Override

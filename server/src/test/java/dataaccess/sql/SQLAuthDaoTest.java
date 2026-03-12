@@ -39,11 +39,28 @@ public class SQLAuthDaoTest {
     }
 
     @Test
+    public void authAddFail() throws SQLConnException {
+        try {
+            authDao.addAuth(null, "verylongstringauth");
+        } catch (SQLConnException e) {
+            Assertions.assertTrue(isTableEmpty());
+        }
+    }
+
+    @Test
     public void getauthSuccess() throws SQLConnException {
-        authDao.addAuth("erikfosse", "verylongstringauth");
-        AuthRecord auth = authDao.getAuth("erikfosse");
+        String token = "verylongstringauth";
+        authDao.addAuth("erikfosse", token);
+        AuthRecord auth = authDao.getAuth(token);
         AuthRecord correctAuth = new AuthRecord("erikfosse", "verylongstringauth");
         Assertions.assertEquals(auth, correctAuth);
+    }
+
+    @Test
+    public void getauthFail() throws SQLConnException {
+        authDao.addAuth("erikfosse", "verylongstringauth");
+        AuthRecord auth = authDao.getAuth("erikfe");
+        Assertions.assertNull(auth);
     }
 
     @Test
@@ -59,6 +76,15 @@ public class SQLAuthDaoTest {
         authDao.delAuth("someotherstringauth");
         authDao.delAuth("verylongstringauth");
         Assertions.assertTrue(isTableEmpty());
+    }
+
+    @Test
+    public void deleteOneAuthFail() throws SQLConnException {
+        authDao.addAuth("erikfosse", "verylongstringauth");
+        authDao.addAuth("erik", "someotherstringauth");
+        authDao.delAuth("someothersngauth");
+        authDao.delAuth("verylongstrinth");
+        Assertions.assertFalse(isTableEmpty());
     }
 
     private boolean isTableEmpty() throws SQLConnException {
