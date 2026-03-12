@@ -33,6 +33,11 @@ public class Server {
 
     public int run(int desiredPort) {
         javalin.start(desiredPort);
+        try {
+            DatabaseManager.createDatabase();
+        } catch (Exception e) {
+            throw new RuntimeException("Error: database failed to start");
+        }
         return javalin.port();
     }
 
