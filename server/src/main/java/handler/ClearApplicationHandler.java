@@ -19,8 +19,7 @@ public class ClearApplicationHandler extends MyHandler implements Handler {
             var result = service.delete();
             sendResult(ctx, result, DeleteResult.class);
         } catch (Exception e) {
-            var exe = (GeneralApi) e;
-            sendResult(ctx, exe, DeleteResult.class);
+            sendResult(ctx, e, DeleteResult.class);
         }
     }
 }

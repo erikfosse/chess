@@ -14,7 +14,7 @@ public class MyHandler {
         return gson.fromJson(bodyString, requestClass);
     }
 
-    public void sendResult(@NotNull Context ctx, GeneralApi result, Class<?> resultClass) {
+    public void sendResult(@NotNull Context ctx, Object result, Class<?> resultClass) {
 
         switch (result) {
             case GeneralApi res when resultClass.isInstance(res) -> ctx.status(200);
@@ -33,7 +33,7 @@ public class MyHandler {
         }
     }
 
-    private void convertToJson(@NotNull Context ctx, GeneralApi response) {
+    private void convertToJson(@NotNull Context ctx, Object response) {
         Gson gson = new Gson();
         var outputString = gson.toJson(response);
         ctx.json(outputString);

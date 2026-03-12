@@ -21,8 +21,7 @@ public class RegisterHandler extends MyHandler implements Handler {
             var result = service.register((RegisterRequest) request);
             sendResult(ctx, result, RegisterResult.class);
         } catch (Exception e) {
-            var exe = (GeneralApi) e;
-            sendResult(ctx, exe, RegisterResult.class);
+            sendResult(ctx, e, RegisterResult.class);
         }
     }
 }

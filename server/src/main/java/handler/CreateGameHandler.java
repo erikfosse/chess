@@ -20,8 +20,7 @@ public class CreateGameHandler extends MyHandler implements Handler {
             var result = service.createGame(authToken, (CreateGameRequest) request);
             sendResult(ctx, result, CreateGameResult.class);
         } catch (Exception e) {
-            var exe = (GeneralApi) e;
-            sendResult(ctx, exe, CreateGameResult.class);
+            sendResult(ctx, e, CreateGameResult.class);
         }
     }
 }

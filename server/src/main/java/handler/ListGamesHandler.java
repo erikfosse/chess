@@ -19,8 +19,7 @@ public class ListGamesHandler extends MyHandler implements Handler {
             var result = service.listGames(request);
             sendResult(ctx, result, ListGamesResult.class);
         } catch (Exception e) {
-            var exe = (GeneralApi) e;
-            sendResult(ctx, exe, ListGamesResult.class);
+            sendResult(ctx, e, ListGamesResult.class);
         }
     }
 }

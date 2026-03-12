@@ -21,8 +21,7 @@ public class JoinGameHandler extends MyHandler implements Handler {
             var result = service.joinGame(authToken, (JoinGameRequest) request);
             sendResult(ctx, result, JoinGameResult.class);
         } catch (Exception e) {
-            var exe = (GeneralApi) e;
-            sendResult(ctx, exe, JoinGameResult.class);
+            sendResult(ctx, e, JoinGameResult.class);
         }
     }
 }

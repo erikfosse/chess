@@ -20,8 +20,7 @@ public class LogoutHandler extends MyHandler implements Handler {
             var result = service.logout(request);
             sendResult(ctx, result, LogoutResult.class);
         } catch (Exception e) {
-            var exc = (GeneralApi) e;
-            sendResult(ctx, exc, LogoutResult.class);
+            sendResult(ctx, e, LogoutResult.class);
         }
     }
 }

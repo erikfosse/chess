@@ -19,8 +19,7 @@ public class LoginHandler extends MyHandler implements Handler {
             var result = service.login((LoginRequest) request);
             sendResult(ctx, result, LoginResult.class);
         } catch (Exception e) {
-            var exe = (GeneralApi) e;
-            sendResult(ctx, exe, LoginResult.class);
+            sendResult(ctx, e, LoginResult.class);
         }
     }
 }
