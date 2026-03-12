@@ -94,7 +94,6 @@ public class DatabaseManager {
                        """
             );
             for (String table : tables) {
-                conn.setCatalog(databaseName);
                 try (var createTableStatement = conn.prepareStatement(table)) {
                     createTableStatement.executeUpdate();
                 }
