@@ -13,29 +13,27 @@ import java.sql.Statement;
 
 public class SQLAuthDao implements AuthInterface {
 
-    private Connection conn;
-
     public SQLAuthDao() throws DataAccessException, SQLException {
-        this.conn = DatabaseManager.getConnection();
+        DatabaseManager.createDatabase();
     }
 
     @Override
     public void addAuth(String username, String authToken) throws SQLConnException {
-        try {
+        try (Connection conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement(
                     "INSERT INTO authData (username, authToken) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
                 preparedStatement.setString(1, username);
                 preparedStatement.setString(2, authToken);
                 preparedStatement.executeUpdate();
             }
-        } catch (SQLException e) {
+        } catch (SQLException | DataAccessException e) {
             throw new SQLConnException();
         }
     }
 
     @Override
-    public AuthRecord getAuth(String authToken) throws SQLConnException {
-        try {
+    public AuthRecord getAuth(String authToken) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement(
                     "SELECT username FROM authData WHERE authToken=?"
             )) {
@@ -59,8 +57,8 @@ public class SQLAuthDao implements AuthInterface {
     }
 
     @Override
-    public void delAuth(String authToken) throws SQLConnException {
-        try {
+    public void delAuth(String authToken) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("DELETE FROM authData WHERE authToken=?")) {
                 preparedStatement.setString(1, authToken);
                 preparedStatement.executeUpdate();
@@ -71,8 +69,8 @@ public class SQLAuthDao implements AuthInterface {
     }
 
     @Override
-    public void deleteData() throws SQLConnException {
-        try {
+    public void deleteData() throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE authData")) {
                 preparedStatement.executeUpdate();
             }

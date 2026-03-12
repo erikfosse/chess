@@ -18,12 +18,9 @@ import java.util.Collection;
 public class SQLGameDao implements GameInterface {
 
     private Integer numGames;
-    private Connection conn;
-    private SQLUserDao userDao;
 
     public SQLGameDao() throws DataAccessException, SQLConnException, SQLException {
-        this.conn = DatabaseManager.getConnection();
-        userDao = new SQLUserDao();
+        DatabaseManager.createDatabase();
         this.numGames = 0;
     }
 
@@ -33,8 +30,8 @@ public class SQLGameDao implements GameInterface {
     }
 
     @Override
-    public void addGame(String gameName, ChessGame game) throws SQLConnException {
-        try {
+    public void addGame(String gameName, ChessGame game) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
             try (var ps = conn.prepareStatement(
                     "INSERT INTO gamedata (gameName, jsonGame) VALUES (?, ?)",
                          Statement.RETURN_GENERATED_KEYS)) {
@@ -53,8 +50,8 @@ public class SQLGameDao implements GameInterface {
         }
     }
     @Override
-    public GameRecord getGame(Integer gameID) throws SQLConnException {
-        try {
+    public GameRecord getGame(Integer gameID) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
             try (var ps = conn.prepareStatement(
                 "SELECT * FROM gameData WHERE gameID=?"
             )) {
@@ -80,8 +77,8 @@ public class SQLGameDao implements GameInterface {
     }
 
     @Override
-    public Collection<GameRecord> getAllGames (String username) throws SQLConnException {
-        try {
+    public Collection<GameRecord> getAllGames (String username) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
             ArrayList<GameRecord> allGames = new ArrayList<>();
             try (var ps = conn.prepareStatement(
                     """
@@ -111,8 +108,8 @@ public class SQLGameDao implements GameInterface {
     }
 
     @Override
-    public void editGame(Integer gameID, String playerColor, String username) throws SQLConnException {
-        try {
+    public void editGame(Integer gameID, String playerColor, String username) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
             String color = "";
             if (playerColor.equals("WHITE")) {
                 color = "whiteUserName";
@@ -139,21 +136,25 @@ public class SQLGameDao implements GameInterface {
     }
 
     @Override
-    public void deleteData() throws SQLConnException {
-        try (var ps = conn.prepareStatement("TRUNCATE TABLE gamedata")) {
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new SQLConnException();
-        }
-        try (var ps = conn.prepareStatement("TRUNCATE TABLE usergamerelation")) {
-            ps.executeUpdate();
-        } catch (SQLException u) {
-            throw new SQLConnException();
+    public void deleteData() throws DataAccessException, SQLException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var ps = conn.prepareStatement("TRUNCATE TABLE gamedata")) {
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new SQLConnException();
+            }
+            try (var ps = conn.prepareStatement("TRUNCATE TABLE usergamerelation")) {
+                ps.executeUpdate();
+            } catch (SQLException u) {
+                throw new SQLConnException();
+            }
+        } catch (SQLConnException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    private Integer findUserID(String username) throws SQLConnException {
-        try {
+    private Integer findUserID(String username) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
             try (var ps = conn.prepareStatement(
                     "SELECT userID FROM userdata WHERE username=?"
             )) {

@@ -24,34 +24,34 @@ public class SQLUserDaoTest {
     }
 
     @BeforeEach
-    public void init() throws SQLConnException {
+    public void init() throws DataAccessException {
         userDao.deleteData();
     }
 
     @AfterAll
-    public static void cleanup() throws SQLConnException {
+    public static void cleanup() throws DataAccessException {
         userDao.deleteData();
     }
 
     @Test
-    public void deleteDataSuccess() throws SQLConnException {
+    public void deleteDataSuccess() throws DataAccessException {
         userDao.deleteData();
         Assertions.assertTrue(isTableEmpty());
     }
 
     @Test
-    public void addUserSuccess() throws SQLConnException {
+    public void addUserSuccess() throws DataAccessException {
         userDao.addUser("erikfosse", "this", "gmail");
         Assertions.assertFalse(isTableEmpty());
     }
 
     @Test
-    public void addUserFail() throws SQLConnException {
+    public void addUserFail() throws DataAccessException {
         userDao.addUser("erikfosse!%^", "this", "gmail");
         Assertions.assertTrue(isTableEmpty());
     }
 
-    @Test void getUserSuccess() throws SQLConnException {
+    @Test void getUserSuccess() throws DataAccessException {
         userDao.addUser("erikfosse", "this", "gmail");
         UserRecord user = userDao.getUser("erikfosse");
         boolean hashpass = BCrypt.checkpw("this", user.password());
@@ -61,7 +61,7 @@ public class SQLUserDaoTest {
         Assertions.assertTrue(hashpass);
     }
 
-    @Test void getUserFail() throws SQLConnException {
+    @Test void getUserFail() throws DataAccessException {
         userDao.addUser("erikfosse", "this", "gmail");
         UserRecord user = userDao.getUser("erik");
         Assertions.assertNull(user);

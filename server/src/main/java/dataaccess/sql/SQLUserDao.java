@@ -13,15 +13,13 @@ import java.sql.Statement;
 
 public class SQLUserDao implements UserInterface {
 
-    private Connection conn;
-
     public SQLUserDao() throws DataAccessException, SQLException {
-        this.conn = DatabaseManager.getConnection();
+        DatabaseManager.createDatabase();
     }
 
     @Override
-    public void addUser(String username, String password, String email) throws SQLConnException {
-        try {
+    public void addUser(String username, String password, String email) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
             String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
             if (username.matches("[a-zA-Z0-9]+")) {
                 try (var preparedStatement = conn.prepareStatement(
@@ -37,8 +35,8 @@ public class SQLUserDao implements UserInterface {
         }
     }
     @Override
-    public UserRecord getUser(String username) throws SQLConnException {
-        try {
+    public UserRecord getUser(String username) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement(
                     "SELECT userID, username, password, email FROM userData WHERE username=?")) {
                 preparedStatement.setString(1, username);
@@ -57,8 +55,8 @@ public class SQLUserDao implements UserInterface {
         }
     }
     @Override
-    public void deleteData() throws SQLConnException {
-        try {
+    public void deleteData() throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE userData")) {
                 preparedStatement.executeUpdate();
             }

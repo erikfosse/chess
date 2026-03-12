@@ -26,30 +26,30 @@ public class SQLGameDaoTest {
     }
 
     @BeforeEach
-    public void init() throws SQLConnException {
+    public void init() throws DataAccessException, SQLException {
         gameDao.deleteData();
     }
 
     @AfterAll
-    public static void cleanup() throws SQLConnException {
+    public static void cleanup() throws DataAccessException, SQLException {
         gameDao.deleteData();
     }
 
     @Test
-    public void deleteAllDataSuccess() throws SQLConnException {
+    public void deleteAllDataSuccess() throws DataAccessException, SQLException {
         gameDao.deleteData();
         Assertions.assertTrue(isTableEmpty());
     }
 
     @Test
-    public void addGameSuccess() throws SQLConnException {
+    public void addGameSuccess() throws DataAccessException {
         ChessGame game = new ChessGame();
         gameDao.addGame("white v. black", game);
         Assertions.assertFalse(isTableEmpty());
     }
 
     @Test
-    public void addGameFail() throws SQLConnException {
+    public void addGameFail() throws DataAccessException {
         ChessGame game = new ChessGame();
         try {
             gameDao.addGame(null, null);
@@ -59,7 +59,7 @@ public class SQLGameDaoTest {
     }
 
     @Test
-    public void getGameSuccess() throws SQLConnException {
+    public void getGameSuccess() throws DataAccessException {
         ChessGame game = new ChessGame();
         gameDao.addGame("white v. black", game);
         int gameID = gameDao.getNumGames();
@@ -69,7 +69,7 @@ public class SQLGameDaoTest {
     }
 
     @Test
-    public void getGameFail() throws SQLConnException {
+    public void getGameFail() throws DataAccessException {
         ChessGame game = new ChessGame();
         gameDao.addGame("white v. black", game);
         int gameID = gameDao.getNumGames();
@@ -79,7 +79,7 @@ public class SQLGameDaoTest {
     }
 
     @Test
-    public void getAllGamesSuccess() throws SQLConnException {
+    public void getAllGamesSuccess() throws DataAccessException {
         ChessGame game = new ChessGame();
         gameDao.addGame("white", game);
         gameDao.addGame("black", game);
@@ -90,7 +90,7 @@ public class SQLGameDaoTest {
     }
 
     @Test
-    public void getAllGamesFail() throws SQLConnException {
+    public void getAllGamesFail() throws DataAccessException {
         try {
             ChessGame game = new ChessGame();
             gameDao.addGame("white", game);
@@ -105,7 +105,7 @@ public class SQLGameDaoTest {
     }
 
     @Test
-    public void editGameSuccess() throws SQLConnException {
+    public void editGameSuccess() throws DataAccessException {
         ChessGame game = new ChessGame();
         gameDao.addGame("white", game);
         gameDao.editGame(1, "WHITE", "erikfosse");
@@ -114,7 +114,7 @@ public class SQLGameDaoTest {
     }
 
     @Test
-    public void editGameFail() throws SQLConnException {
+    public void editGameFail() throws DataAccessException {
         ChessGame game = new ChessGame();
         gameDao.addGame("white", game);
         gameDao.editGame(1, "WHITE", "erikfosse");
