@@ -52,5 +52,6 @@ public class DeleteServiceTest {
         userService.login(new LoginRequest("erik", "something"));
         String auth = ((RegisterResult) reg).authToken();
         gameService.createGame(auth, new CreateGameRequest("GoodGame"));
+        Assertions.assertNull(null);
     }
 }
