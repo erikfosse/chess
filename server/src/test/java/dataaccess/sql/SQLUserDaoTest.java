@@ -3,6 +3,7 @@ package dataaccess.sql;
 import dataaccess.DatabaseManager;
 import model.UserRecord;
 import model.exception.DataAccessException;
+import model.exception.SQLConnException;
 import org.junit.jupiter.api.*;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -19,26 +20,26 @@ public class SQLUserDaoTest {
     }
 
     @BeforeEach
-    public void init() throws SQLException {
+    public void init() throws SQLConnException {
         userDao.deleteData();
     }
 
     @AfterAll
-    public static void cleanup() throws SQLException {
+    public static void cleanup() throws SQLConnException {
         userDao.deleteData();
     }
 
     @Test
-    public void deleteDataSuccess() throws SQLException {
+    public void deleteDataSuccess() throws SQLConnException {
         userDao.deleteData();
     }
 
     @Test
-    public void addUserSuccess() throws SQLException {
+    public void addUserSuccess() throws SQLConnException {
         userDao.addUser("erikfosse", "this", "gmail");
     }
 
-    @Test void getUserSuccess() throws SQLException {
+    @Test void getUserSuccess() throws SQLConnException {
         userDao.addUser("erikfosse", "this", "gmail");
         UserRecord user = userDao.getUser("erikfosse");
         boolean hashpass = BCrypt.checkpw("this", user.password());

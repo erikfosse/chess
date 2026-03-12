@@ -3,6 +3,7 @@ package dataaccess.sql;
 import dataaccess.DatabaseManager;
 import model.AuthRecord;
 import model.exception.DataAccessException;
+import model.exception.SQLConnException;
 import org.junit.jupiter.api.*;
 
 import java.sql.Connection;
@@ -15,30 +16,30 @@ public class SQLAuthDaoTest {
     private static Connection conn;
 
     @BeforeAll
-    public static void setup() throws SQLException, DataAccessException {
+    public static void setup() throws SQLConnException, DataAccessException, SQLException {
         DatabaseManager.createDatabase();
         authDao = new SQLAuthDao();
         conn = DatabaseManager.getConnection();
     }
 
     @BeforeEach
-    public void init() throws SQLException {
+    public void init() throws SQLConnException {
         authDao.deleteData();
     }
 
     @AfterAll
-    public static void cleanup() throws SQLException {
+    public static void cleanup() throws SQLConnException {
         authDao.deleteData();
     }
 
     @Test
-    public void authAddSuccess() throws SQLException {
+    public void authAddSuccess() throws SQLConnException {
         authDao.addAuth("erikfosse", "verylongstringauth");
         Assertions.assertFalse(isTableEmpty());
     }
 
     @Test
-    public void getauthSuccess() throws SQLException {
+    public void getauthSuccess() throws SQLConnException {
         authDao.addAuth("erikfosse", "verylongstringauth");
         AuthRecord auth = authDao.getAuth("erikfosse");
         AuthRecord correctAuth = new AuthRecord("erikfosse", "verylongstringauth");
@@ -46,13 +47,13 @@ public class SQLAuthDaoTest {
     }
 
     @Test
-    public void deleteAllDataSuccess() throws SQLException {
+    public void deleteAllDataSuccess() throws SQLConnException {
         authDao.deleteData();
         Assertions.assertTrue(isTableEmpty());
     }
 
     @Test
-    public void deleteOneAuthSuccess() throws SQLException {
+    public void deleteOneAuthSuccess() throws SQLConnException {
         authDao.addAuth("erikfosse", "verylongstringauth");
         authDao.addAuth("erik", "someotherstringauth");
         authDao.delAuth("someotherstringauth");
@@ -60,14 +61,18 @@ public class SQLAuthDaoTest {
         Assertions.assertTrue(isTableEmpty());
     }
 
-    private boolean isTableEmpty() throws SQLException {
-        try (var ps = conn.prepareStatement("SELECT COUNT(*) FROM authdata")) {
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) == 0;
-            } else {
-                return false;
+    private boolean isTableEmpty() throws SQLConnException {
+        try {
+            try (var ps = conn.prepareStatement("SELECT COUNT(*) FROM authdata")) {
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    return rs.getInt(1) == 0;
+                } else {
+                    return false;
+                }
             }
+        } catch (SQLException e) {
+            throw new SQLConnException();
         }
     }
 }

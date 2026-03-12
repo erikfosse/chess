@@ -4,6 +4,7 @@ import chess.ChessGame;
 import dataaccess.DatabaseManager;
 import model.GameRecord;
 import model.exception.DataAccessException;
+import model.exception.SQLConnException;
 import org.junit.jupiter.api.*;
 
 import java.sql.Connection;
@@ -16,31 +17,31 @@ public class SQLGameDaoTest {
     private static Connection conn;
 
     @BeforeAll
-    public static void setup() throws SQLException, DataAccessException {
+    public static void setup() throws SQLConnException, DataAccessException, SQLException {
         DatabaseManager.createDatabase();
         gameDao = new SQLGameDao();
         conn = DatabaseManager.getConnection();
     }
 
     @BeforeEach
-    public void init() throws SQLException {
+    public void init() throws SQLConnException {
         gameDao.deleteData();
     }
 
     @AfterAll
-    public static void cleanup() throws SQLException {
+    public static void cleanup() throws SQLConnException {
         gameDao.deleteData();
     }
 
     @Test
-    public void addGameSuccess() throws SQLException {
+    public void addGameSuccess() throws SQLConnException {
         ChessGame game = new ChessGame();
         gameDao.addGame("white v. black", game);
         Assertions.assertFalse(isTableEmpty());
     }
 
     @Test
-    public void getGameSuccess() throws SQLException {
+    public void getGameSuccess() throws SQLConnException {
         ChessGame game = new ChessGame();
         gameDao.addGame("white v. black", game);
         int gameID = gameDao.getNumGames();
@@ -49,14 +50,18 @@ public class SQLGameDaoTest {
         Assertions.assertEquals(returnedGame, goodGame);
     }
 
-    private boolean isTableEmpty() throws SQLException {
-        try (var ps = conn.prepareStatement("SELECT COUNT(*) FROM gamedata")) {
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) == 0;
-            } else {
-                return false;
+    private boolean isTableEmpty() throws SQLConnException {
+        try {
+            try (var ps = conn.prepareStatement("SELECT COUNT(*) FROM gamedata")) {
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    return rs.getInt(1) == 0;
+                } else {
+                    return false;
+                }
             }
+        } catch (SQLException e) {
+            throw new SQLConnException();
         }
     }
 }

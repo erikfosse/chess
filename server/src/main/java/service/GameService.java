@@ -22,13 +22,13 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class GameService {
-    public GeneralApi createGame(String authToken, CreateGameRequest request) throws SQLException, DataAccessException {
+    public GeneralApi createGame(String authToken, CreateGameRequest request) throws DataAccessException, SQLException {
         if (authToken == null || request.gameName() == null) {
-            return new BadRequestException();
+            throw new BadRequestException();
         }
         var result = checkAuthData(authToken);
         if (result instanceof UnauthorizedException exception) {
-            return exception;
+            throw exception;
         } else if (result instanceof AuthRecord auth) {
             SQLGameDao gameDao = new SQLGameDao();
             ChessGame chessGame = new ChessGame();
@@ -39,16 +39,16 @@ public class GameService {
         return null;
     }
 
-    public GeneralApi joinGame(String authToken, JoinGameRequest request) throws SQLException, DataAccessException {
+    public GeneralApi joinGame(String authToken, JoinGameRequest request) throws DataAccessException, SQLException {
         if (authToken == null || request.gameID() == null || request.playerColor() == null) {
-            return new BadRequestException();
+            throw new BadRequestException();
         }
         if (!request.playerColor().equals("WHITE") && !request.playerColor().equals("BLACK")) {
-            return new BadRequestException();
+            throw new BadRequestException();
         }
         var result = checkAuthData(authToken);
         if (result instanceof UnauthorizedException exception) {
-            return exception;
+            throw exception;
         } else if (result instanceof AuthRecord auth) {
             SQLGameDao gameDao = new SQLGameDao();
 
@@ -56,7 +56,7 @@ public class GameService {
             String color = request.playerColor();
             if ((color.equals("WHITE") && preGame.whiteUsername() != null) ||
                     (color.equals("BLACK") && preGame.blackUsername() != null)) {
-                return new AlreadyTakenException();
+                throw new AlreadyTakenException();
             }
 
             gameDao.editGame(request.gameID(), request.playerColor(), auth.username());
@@ -66,16 +66,17 @@ public class GameService {
         }
     }
 
-    public GeneralApi listGames(ListGamesRequest request) throws SQLException, DataAccessException {
+    public GeneralApi listGames(ListGamesRequest request) throws DataAccessException, SQLException {
         if (request.authToken() == null) {
-            return new BadRequestException();
+            throw new BadRequestException();
         }
         var result = checkAuthData(request.authToken());
         if (result instanceof UnauthorizedException exception) {
-            return exception;
+            throw exception;
         } else if (result instanceof AuthRecord auth) {
             SQLGameDao gameDao = new SQLGameDao();
             var username = auth.username();
+
             var gamesList = gameDao.getAllGames(username);
             if (gamesList == null) {
                 return new ListGamesResult();
@@ -86,7 +87,7 @@ public class GameService {
         }
     }
 
-    private static Object checkAuthData(String authToken) throws SQLException, DataAccessException {
+    private static Object checkAuthData(String authToken) throws DataAccessException, SQLException {
         SQLAuthDao authdao = new SQLAuthDao();
         AuthRecord authData = authdao.getAuth(authToken);
         return Objects.requireNonNullElseGet(authData, UnauthorizedException::new);

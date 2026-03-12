@@ -4,6 +4,7 @@ import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import model.exception.AlreadyTakenException;
 import model.exception.ErrorResult;
+import model.request.GeneralApi;
 import org.jetbrains.annotations.NotNull;
 import model.exception.BadRequestException;
 import model.request.RegisterRequest;
@@ -16,7 +17,12 @@ public class RegisterHandler extends MyHandler implements Handler {
     public void handle(@NotNull Context ctx) throws Exception {
         var request = processRequest(ctx, RegisterRequest.class);
         UserService service = new UserService();
-        var result = service.register((RegisterRequest) request);
-        sendResult(ctx, result, RegisterResult.class);
+        try {
+            var result = service.register((RegisterRequest) request);
+            sendResult(ctx, result, RegisterResult.class);
+        } catch (Exception e) {
+            var exe = (GeneralApi) e;
+            sendResult(ctx, exe, RegisterResult.class);
+        }
     }
 }

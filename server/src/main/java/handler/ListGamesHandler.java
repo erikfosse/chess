@@ -2,6 +2,7 @@ package handler;
 
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
+import model.request.GeneralApi;
 import model.result.ListGamesResult;
 import org.jetbrains.annotations.NotNull;
 import service.GameService;
@@ -14,7 +15,12 @@ public class ListGamesHandler extends MyHandler implements Handler {
     public void handle(@NotNull Context ctx) throws Exception {
         var request = new ListGamesRequest(ctx.header("authorization"));
         GameService service = new GameService();
-        var result = service.listGames(request);
-        sendResult(ctx, result, ListGamesResult.class);
+        try {
+            var result = service.listGames(request);
+            sendResult(ctx, result, ListGamesResult.class);
+        } catch (Exception e) {
+            var exe = (GeneralApi) e;
+            sendResult(ctx, exe, ListGamesResult.class);
+        }
     }
 }

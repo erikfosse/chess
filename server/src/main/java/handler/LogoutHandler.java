@@ -2,6 +2,7 @@ package handler;
 
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
+import model.request.GeneralApi;
 import model.result.RegisterResult;
 import org.jetbrains.annotations.NotNull;
 import service.UserService;
@@ -15,7 +16,12 @@ public class LogoutHandler extends MyHandler implements Handler {
     public void handle(@NotNull Context ctx) throws Exception {
         var request = new LogoutRequest(ctx.header("authorization"));
         UserService service = new UserService();
-        var result = service.logout(request);
-        sendResult(ctx, result, LogoutResult.class);
+        try {
+            var result = service.logout(request);
+            sendResult(ctx, result, LogoutResult.class);
+        } catch (Exception e) {
+            var exc = (GeneralApi) e;
+            sendResult(ctx, exc, LogoutResult.class);
+        }
     }
 }

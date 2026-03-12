@@ -1,10 +1,7 @@
 package handler;
 
 import com.google.gson.Gson;
-import model.exception.AlreadyTakenException;
-import model.exception.BadRequestException;
-import model.exception.ErrorResult;
-import model.exception.UnauthorizedException;
+import model.exception.*;
 import model.result.LoginResult;
 import org.jetbrains.annotations.NotNull;
 import io.javalin.http.Context;
@@ -24,6 +21,7 @@ public class MyHandler {
             case BadRequestException r -> ctx.status(400);
             case UnauthorizedException r -> ctx.status(401);
             case AlreadyTakenException r -> ctx.status(403);
+            case SQLConnException r -> ctx.status(500);
             default -> ctx.status(500);
         }
 
@@ -39,5 +37,6 @@ public class MyHandler {
         Gson gson = new Gson();
         var outputString = gson.toJson(response);
         ctx.json(outputString);
+        System.out.println(outputString);
     }
 }

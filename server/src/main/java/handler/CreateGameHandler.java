@@ -2,6 +2,7 @@ package handler;
 
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
+import model.request.GeneralApi;
 import model.result.CreateGameResult;
 import org.jetbrains.annotations.NotNull;
 import service.GameService;
@@ -15,7 +16,12 @@ public class CreateGameHandler extends MyHandler implements Handler {
         var authToken = ctx.header("authorization");
         var request = processRequest(ctx, CreateGameRequest.class);
         GameService service = new GameService();
-        var result = service.createGame(authToken, (CreateGameRequest) request);
-        sendResult(ctx, result, CreateGameResult.class);
+        try {
+            var result = service.createGame(authToken, (CreateGameRequest) request);
+            sendResult(ctx, result, CreateGameResult.class);
+        } catch (Exception e) {
+            var exe = (GeneralApi) e;
+            sendResult(ctx, exe, CreateGameResult.class);
+        }
     }
 }

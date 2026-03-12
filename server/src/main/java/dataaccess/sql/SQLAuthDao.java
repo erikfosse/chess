@@ -5,6 +5,7 @@ import dataaccess.interfaces.AuthInterface;
 import db.AuthData;
 import model.AuthRecord;
 import model.exception.DataAccessException;
+import model.exception.SQLConnException;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -19,48 +20,64 @@ public class SQLAuthDao implements AuthInterface {
     }
 
     @Override
-    public void addAuth(String username, String authToken) throws SQLException {
-        try (var preparedStatement = conn.prepareStatement(
-                "INSERT INTO authData (username, authToken) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
-            preparedStatement.setString(1, username);
-            preparedStatement.setString(2, authToken);
-            preparedStatement.executeUpdate();
+    public void addAuth(String username, String authToken) throws SQLConnException {
+        try {
+            try (var preparedStatement = conn.prepareStatement(
+                    "INSERT INTO authData (username, authToken) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                preparedStatement.setString(1, username);
+                preparedStatement.setString(2, authToken);
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new SQLConnException();
         }
     }
 
     @Override
-    public AuthRecord getAuth(String authToken) throws SQLException {
-        try (var preparedStatement = conn.prepareStatement(
-                "SELECT username FROM authData WHERE authToken=?"
-        )) {
-            preparedStatement.setString(1, authToken);
-            try (var rs = preparedStatement.executeQuery()) {
-                String username = "";
-                while (rs.next()) {
-                    username = rs.getString("username");
-                }
-                if (username.isEmpty()) {
-                    return null;
-                }
-                else {
-                    return new AuthRecord(username, authToken);
+    public AuthRecord getAuth(String authToken) throws SQLConnException {
+        try {
+            try (var preparedStatement = conn.prepareStatement(
+                    "SELECT username FROM authData WHERE authToken=?"
+            )) {
+                preparedStatement.setString(1, authToken);
+                try (var rs = preparedStatement.executeQuery()) {
+                    String username = "";
+                    while (rs.next()) {
+                        username = rs.getString("username");
+                    }
+                    if (username.isEmpty()) {
+                        return null;
+                    }
+                    else {
+                        return new AuthRecord(username, authToken);
+                    }
                 }
             }
+        } catch (SQLException e) {
+            throw new SQLConnException();
         }
     }
 
     @Override
-    public void delAuth(String authToken) throws SQLException {
-        try (var preparedStatement = conn.prepareStatement("DELETE FROM authData WHERE authToken=?")) {
-            preparedStatement.setString(1, authToken);
-            preparedStatement.executeUpdate();
+    public void delAuth(String authToken) throws SQLConnException {
+        try {
+            try (var preparedStatement = conn.prepareStatement("DELETE FROM authData WHERE authToken=?")) {
+                preparedStatement.setString(1, authToken);
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new SQLConnException();
         }
     }
 
     @Override
-    public void deleteData() throws SQLException {
-        try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE authData")) {
-            preparedStatement.executeUpdate();
+    public void deleteData() throws SQLConnException {
+        try {
+            try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE authData")) {
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new SQLConnException();
         }
     }
 }

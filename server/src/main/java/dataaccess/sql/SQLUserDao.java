@@ -4,6 +4,7 @@ import dataaccess.DatabaseManager;
 import dataaccess.interfaces.UserInterface;
 import model.UserRecord;
 import model.exception.DataAccessException;
+import model.exception.SQLConnException;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Connection;
@@ -19,38 +20,50 @@ public class SQLUserDao implements UserInterface {
     }
 
     @Override
-    public void addUser(String username, String password, String email) throws SQLException {
-        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-        if (username.matches("[a-zA-Z0-9]+")) {
+    public void addUser(String username, String password, String email) throws SQLConnException {
+        try {
+            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+            if (username.matches("[a-zA-Z0-9]+")) {
+                try (var preparedStatement = conn.prepareStatement(
+                        "INSERT INTO userData (username, password, email) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                    preparedStatement.setString(1, username);
+                    preparedStatement.setString(2, hashedPassword);
+                    preparedStatement.setString(3, email);
+                    preparedStatement.executeUpdate();
+                }
+            }
+        } catch (SQLException e) {
+            throw new SQLConnException();
+        }
+    }
+    @Override
+    public UserRecord getUser(String username) throws SQLConnException {
+        try {
             try (var preparedStatement = conn.prepareStatement(
-                    "INSERT INTO userData (username, password, email) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                    "SELECT userID, username, password, email FROM userData WHERE username=?")) {
                 preparedStatement.setString(1, username);
-                preparedStatement.setString(2, hashedPassword);
-                preparedStatement.setString(3, email);
+                try (var rs = preparedStatement.executeQuery()) {
+                    UserRecord user = null;
+                    while (rs.next()) {
+                        var hashPassword = rs.getString("password");
+                        var email = rs.getString("email");
+                        user = new UserRecord(username, hashPassword, email);
+                    }
+                    return user;
+                }
+            }
+        } catch (SQLException e) {
+            throw new SQLConnException();
+        }
+    }
+    @Override
+    public void deleteData() throws SQLConnException {
+        try {
+            try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE userData")) {
                 preparedStatement.executeUpdate();
             }
-        }
-    }
-    @Override
-    public UserRecord getUser(String username) throws SQLException {
-        try (var preparedStatement = conn.prepareStatement(
-                "SELECT userID, username, password, email FROM userData WHERE username=?")) {
-            preparedStatement.setString(1, username);
-            try (var rs = preparedStatement.executeQuery()) {
-                UserRecord user = null;
-                while (rs.next()) {
-                    var hashPassword = rs.getString("password");
-                    var email = rs.getString("email");
-                    user = new UserRecord(username, hashPassword, email);
-                }
-                return user;
-            }
-        }
-    }
-    @Override
-    public void deleteData() throws SQLException {
-        try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE userData")) {
-            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new SQLConnException();
         }
     }
 }
