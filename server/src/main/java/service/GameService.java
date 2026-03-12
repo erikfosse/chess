@@ -51,6 +51,14 @@ public class GameService {
             return exception;
         } else if (result instanceof AuthRecord auth) {
             SQLGameDao gameDao = new SQLGameDao();
+
+            GameRecord preGame = gameDao.getGame(request.gameID());
+            String color = request.playerColor();
+            if ((color.equals("WHITE") && preGame.whiteUsername() != null) ||
+                    (color.equals("BLACK") && preGame.blackUsername() != null)) {
+                return new AlreadyTakenException();
+            }
+
             gameDao.editGame(request.gameID(), request.playerColor(), auth.username());
             return new JoinGameResult();
         } else {

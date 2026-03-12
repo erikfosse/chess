@@ -6,6 +6,7 @@ import dataaccess.DatabaseManager;
 import dataaccess.interfaces.GameInterface;
 import model.GameRecord;
 import model.exception.AlreadyTakenException;
+import model.exception.BadRequestException;
 import model.exception.DataAccessException;
 
 import java.sql.Connection;
@@ -69,15 +70,11 @@ public class SQLGameDao implements GameInterface {
     @Override
     public Collection<GameRecord> getAllGames (String username) throws SQLException {
         ArrayList<GameRecord> allGames = new ArrayList<>();
-        int userID = findUserID(username);
         try (var ps = conn.prepareStatement(
                 """
-                        SELECT * FROM gamedata JOIN usergamerelation
-                        WHERE gamedata.gameID = usergamerelation.gameID
-                        AND usergamerelation.userID = ?;
+                        SELECT * FROM gamedata;
                         """
         )) {
-            ps.setInt(1, userID);
             try (var rs = ps.executeQuery()) {
                 int gameID = 0;
                 String json = "";
@@ -103,7 +100,7 @@ public class SQLGameDao implements GameInterface {
     }
 
     @Override
-    public void editGame(Integer gameID, String playerColor, String username) throws SQLException {
+    public void editGame(Integer gameID, String playerColor, String username) throws SQLException, BadRequestException {
         String color = "";
         if (playerColor.equals("WHITE")) {
             color = "whiteUserName";
