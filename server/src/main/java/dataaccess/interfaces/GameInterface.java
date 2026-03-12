@@ -15,6 +15,7 @@ public interface GameInterface {
     public GameRecord getGame(Integer gameID) throws SQLException, SQLConnException;
     public Collection<GameRecord> getAllGames(String username) throws SQLException, SQLConnException;
     public Integer getNumGames();
-    public void editGame(Integer gameID, String playerColor, String username) throws AlreadyTakenException, SQLException, BadRequestException, SQLConnException;
+    public void editGame(Integer gameID, String playerColor, String username)
+            throws AlreadyTakenException, SQLException, BadRequestException, SQLConnException;
     public void deleteData() throws SQLException, SQLConnException;
 }
