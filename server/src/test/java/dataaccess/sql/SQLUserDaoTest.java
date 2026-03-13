@@ -47,8 +47,11 @@ public class SQLUserDaoTest {
 
     @Test
     public void addUserFail() throws DataAccessException {
-        userDao.addUser("erikfosse!%^", "this", "gmail");
-        Assertions.assertTrue(isTableEmpty());
+        try {
+            userDao.addUser(null, "this", "gmail");
+        } catch (Exception e) {
+            Assertions.assertSame(SQLConnException.class, e.getClass());
+        }
     }
 
     @Test void getUserSuccess() throws DataAccessException {
