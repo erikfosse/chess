@@ -21,14 +21,12 @@ public class SQLUserDao implements UserInterface {
     public void addUser(String username, String password, String email) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
             String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-            if (username.matches("[a-zA-Z0-9]+")) {
-                try (var preparedStatement = conn.prepareStatement(
-                        "INSERT INTO userData (username, password, email) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
-                    preparedStatement.setString(1, username);
-                    preparedStatement.setString(2, hashedPassword);
-                    preparedStatement.setString(3, email);
-                    preparedStatement.executeUpdate();
-                }
+            try (var preparedStatement = conn.prepareStatement(
+                    "INSERT INTO userdata (username, password, email) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                preparedStatement.setString(1, username);
+                preparedStatement.setString(2, hashedPassword);
+                preparedStatement.setString(3, email);
+                preparedStatement.executeUpdate();
             }
         } catch (SQLException e) {
             throw new SQLConnException();
@@ -38,7 +36,7 @@ public class SQLUserDao implements UserInterface {
     public UserRecord getUser(String username) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement(
-                    "SELECT userID, username, password, email FROM userData WHERE username=?")) {
+                    "SELECT userID, username, password, email FROM userdata WHERE username=?")) {
                 preparedStatement.setString(1, username);
                 try (var rs = preparedStatement.executeQuery()) {
                     UserRecord user = null;
@@ -57,7 +55,7 @@ public class SQLUserDao implements UserInterface {
     @Override
     public void deleteData() throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE userData")) {
+            try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE userdata")) {
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException e) {

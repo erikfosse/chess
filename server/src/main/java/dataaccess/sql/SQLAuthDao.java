@@ -21,7 +21,7 @@ public class SQLAuthDao implements AuthInterface {
     public void addAuth(String username, String authToken) throws SQLConnException {
         try (Connection conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement(
-                    "INSERT INTO authData (username, authToken) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                    "INSERT INTO authdata (username, authToken) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
                 preparedStatement.setString(1, username);
                 preparedStatement.setString(2, authToken);
                 preparedStatement.executeUpdate();
@@ -35,7 +35,7 @@ public class SQLAuthDao implements AuthInterface {
     public AuthRecord getAuth(String authToken) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement(
-                    "SELECT username FROM authData WHERE authToken=?"
+                    "SELECT username FROM authdata WHERE authToken=?"
             )) {
                 preparedStatement.setString(1, authToken);
                 try (var rs = preparedStatement.executeQuery()) {
@@ -59,7 +59,7 @@ public class SQLAuthDao implements AuthInterface {
     @Override
     public void delAuth(String authToken) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement("DELETE FROM authData WHERE authToken=?")) {
+            try (var preparedStatement = conn.prepareStatement("DELETE FROM authdata WHERE authToken=?")) {
                 preparedStatement.setString(1, authToken);
                 preparedStatement.executeUpdate();
             }
@@ -71,7 +71,7 @@ public class SQLAuthDao implements AuthInterface {
     @Override
     public void deleteData() throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE authData")) {
+            try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE authdata")) {
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException e) {

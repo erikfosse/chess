@@ -53,7 +53,7 @@ public class SQLGameDao implements GameInterface {
     public GameRecord getGame(Integer gameID) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
             try (var ps = conn.prepareStatement(
-                "SELECT * FROM gameData WHERE gameID=?"
+                "SELECT * FROM gamedata WHERE gameID=?"
             )) {
                 ps.setInt(1, gameID);
                 try (var rs = ps.executeQuery()) {

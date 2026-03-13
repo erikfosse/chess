@@ -60,7 +60,7 @@ public class DatabaseManager {
         try (var conn = getConnection()) {
             List<String> tables = List.of(
                     """
-                       CREATE TABLE IF NOT EXISTS userData (
+                       CREATE TABLE IF NOT EXISTS userdata (
                            userID INT NOT NULL AUTO_INCREMENT,
                            username VARCHAR(255) NOT NULL,
                            password VARCHAR(255) NOT NULL,
@@ -69,7 +69,7 @@ public class DatabaseManager {
                            )
                        """,
                     """
-                       CREATE TABLE IF NOT EXISTS authData (
+                       CREATE TABLE IF NOT EXISTS authdata (
                            authID INT NOT NULL AUTO_INCREMENT,
                            username VARCHAR(255) NOT NULL,
                            authToken VARCHAR(255) NOT NULL,
@@ -77,17 +77,17 @@ public class DatabaseManager {
                            )
                        """,
                     """
-                       CREATE TABLE IF NOT EXISTS gameData (
+                       CREATE TABLE IF NOT EXISTS gamedata (
                            gameID INT NOT NULL AUTO_INCREMENT,
                            whiteUserName VARCHAR(255),
                            blackUserName VARCHAR(255),
                            gameName VARCHAR(255) NOT NULL,
-                           jsonGame VARCHAR(3000) NOT NULL,
+                           jsonGame TEXT NOT NULL,
                            PRIMARY KEY (gameID)
                            )
                        """,
                     """
-                       CREATE TABLE IF NOT EXISTS userGameRelation (
+                       CREATE TABLE IF NOT EXISTS usergamerelation (
                            userID INT NOT NULL,
                            gameID INT NOT NULL
                            )
