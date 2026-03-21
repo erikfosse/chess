@@ -4,7 +4,10 @@ import model.GameRecord;
 import model.result.*;
 import ui.ChessUI;
 
+import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.reflect.Array;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
@@ -16,9 +19,10 @@ public class Client {
     private static String authToken;
     private static ArrayList<GameRecord> games;
     private static int status;
-    private static final int LOGGED_OUT = -1;
-    private static final int LOGGED_IN = 0;
-    private static final int IN_GAME = 1;
+    private static final int LOGGED_OUT = 0;
+    private static final int LOGGED_IN = 1;
+    private static final int IN_GAME = 2;
+    private static final int QUIT = -1;
     private static ServerFacade serverFacade;
 
     public static void main(String[] args) {
@@ -36,42 +40,41 @@ public class Client {
         serverFacade = new ServerFacade(host, port);
         Scanner scanner = new Scanner(System.in);
         PrintStream out = System.out;
-        printCommandline(System.out);
 
         status = LOGGED_OUT;
         while (true) {
+            printCommandline(System.out);
             switch (status) {
                 case LOGGED_OUT -> preLoginUI(out, scanner);
                 case LOGGED_IN -> postLoginUI(out, scanner);
+                case QUIT -> {
+                    return;
+                }
             }
         }
     }
 
     private static void preLoginUI(PrintStream out, Scanner scanner) {
         outer:
-        while (scanner.hasNext()) {
+        if (scanner.hasNext()) {
             String[] commands = getLine(scanner);
             switch (commands[0]) {
                 case "help" -> preLoginHelp(out);
                 case "login" -> login(out, commands);
                 case "register" -> register(out, commands);
-                case "quit" -> {
-                    break outer;
-                }
-                default -> out.println("Incorrect Command");
+                case "quit" -> status = QUIT;
+                default -> out.println("Unrecognized Command");
             }
-            printCommandline(out);
-            break;
         }
     }
 
     private static void register(PrintStream out, String[] param) {
-        if (param.length != 3) {
+        if (param.length != 4) {
             out.println("Incorrect number of parameters: please enter <USERNAME> <PASSWORD> <EMAIL>");
             return;
         }
         try {
-            HttpResponse<String> result = serverFacade.register(param[0], param[1], param[2]);
+            HttpResponse<String> result = serverFacade.register(param[1], param[2], param[3]);
             registerLoginSwitch(out, result);
             if (result.statusCode() == 200) {
                 RegisterResult res = (RegisterResult) serverFacade.fromJson(result.body(), RegisterResult.class);
@@ -84,12 +87,12 @@ public class Client {
     }
 
     private static void login(PrintStream out, String[] param) {
-        if (param.length != 2) {
+        if (param.length != 3) {
             out.println("Incorrect number of parameters: please enter <USERNAME> <PASSWORD>");
             return;
         }
         try {
-            HttpResponse<String> result = serverFacade.register(param[0], param[1], param[2]);
+            HttpResponse<String> result = serverFacade.login(param[1], param[2]);
             registerLoginSwitch(out, result);
             if (result.statusCode() == 200) {
                 LoginResult res = (LoginResult) serverFacade.fromJson(result.body(), LoginResult.class);
@@ -121,11 +124,16 @@ public class Client {
 
     private static void postLoginUI(PrintStream out, Scanner scanner) {
         outer:
-        while (scanner.hasNext()) {
+        if (scanner.hasNext()) {
             String[] commands = getLine(scanner);
-            if (isAuthorized()) {
+            if (!isAuthorized()) {
                 out.println("Unauthorized");
-                break;
+                return;
+            }
+            try {
+                games = getGames(out);
+            } catch (Exception e) {
+                out.println("Error");
             }
             switch (commands[0]) {
                 case "create" -> createGame(out, commands);
@@ -134,27 +142,23 @@ public class Client {
                 case "observe" -> observeGame(out, commands);
                 case "logout" -> logoutGame(out, commands);
                 case "help" -> postLoginHelp(out);
-                case "quite" -> {
-                    break outer;
-                }
-                default -> System.out.println("Incorrect Command");
+                case "quit" -> status = QUIT;
+                default -> System.out.println("Unrecognized Command");
             }
-            printCommandline(System.out);
-            break;
         }
     }
 
     private static void createGame(PrintStream out, String[] param) {
-        if (param.length != 1) {
+        if (param.length != 2) {
             out.println("Incorrect number of parameters: please enter <NAME>");
             return;
         }
         try {
-            HttpResponse<String> result = serverFacade.createGame(authToken, param[0]);
+            HttpResponse<String> result = serverFacade.createGame(authToken, param[1]);
             gameSwitch(out, result);
             if (result.statusCode() == 200) {
                 CreateGameResult res = (CreateGameResult) serverFacade.fromJson(result.body(), CreateGameResult.class);
-                out.printf("Success: %s %d%n", param[0], res.gameID());
+                out.printf("Success: %s ID: %d%n", param[1], res.gameID());
             }
         } catch (Exception e) {
             out.println("Incorrect parameter input");
@@ -162,32 +166,41 @@ public class Client {
     }
 
     private static void listGames(PrintStream out, String[] param) {
-        if (param.length != 0) {
+        if (param.length != 1) {
             out.println("No parameters are needed for list");
             return;
         }
         try {
-            HttpResponse<String> result = serverFacade.listGames(authToken);
-            gameSwitch(out, result);
-            if (result.statusCode() == 200) {
-                ListGamesResult res = (ListGamesResult) serverFacade.fromJson(result.body(), ListGamesResult.class);
-                games = res.games();
-                for (GameRecord game : games) {
-                    out.printf("#%d %s white: %s, black: %s%n", game.gameID(), game.gameName(), game.whiteUsername(), game.blackUsername());
-                }
+            games = getGames(out);
+            if (games == null) {
+                out.println("No active games");
+                return;
+            }
+            for (GameRecord game : games) {
+                out.printf("#%d - %s %n  white: %s, %n  black: %s%n", game.gameID(), game.gameName(), game.whiteUsername(), game.blackUsername());
             }
         } catch (Exception e) {
             out.println("Incorrect parameter input");
         }
     }
 
+    private static ArrayList<GameRecord> getGames(PrintStream out) throws URISyntaxException, IOException, InterruptedException {
+        HttpResponse<String> result = serverFacade.listGames(authToken);
+        gameSwitch(out, result);
+        if (result.statusCode() == 200) {
+            ListGamesResult res = (ListGamesResult) serverFacade.fromJson(result.body(), ListGamesResult.class);
+            return res.games();
+        }
+        return null;
+    }
+
     private static void joinGame(PrintStream out, String[] param) {
-        if (param.length != 2) {
+        if (param.length != 3) {
             out.println("Incorrect number of parameters: please enter <ID> [WHITE|BLACK]");
             return;
         }
         try {
-            HttpResponse<String> result = serverFacade.joinGame(authToken, Integer.parseInt(param[0]), param[1]);
+            HttpResponse<String> result = serverFacade.joinGame(authToken, Integer.parseInt(param[1]), param[2].toUpperCase());
             gameSwitch(out, result);
             if (result.statusCode() == 200) {
                 JoinGameResult res = (JoinGameResult) serverFacade.fromJson(result.body(), JoinGameResult.class);
@@ -198,13 +211,13 @@ public class Client {
     }
 
     private static void observeGame(PrintStream out, String[] param) {
-        if (param.length != 1) {
+        if (param.length != 2) {
             out.println("Incorrect number of parameters: please enter <ID>");
             return;
         }
         for (GameRecord game : games) {
-            if (ServerFacade.isInt(param[0])) {
-                int id = Integer.parseInt(param[0]);
+            if (ServerFacade.isInt(param[1])) {
+                int id = Integer.parseInt(param[1]);
                 if (game.gameID().equals(id)) {
                     ChessUI.run(game.game(), ChessUI.WHITE);
                 }
@@ -213,7 +226,7 @@ public class Client {
     }
 
     private static void logoutGame(PrintStream out, String[] param) {
-        if (param.length != 0) {
+        if (param.length != 1) {
             out.println("No parameters are needed for list");
             return;
         }
@@ -252,7 +265,17 @@ public class Client {
     }
 
     private static void printCommandline(PrintStream out) {
-        out.printf("[%s] >>> ", status);
+        String statement = switch (status) {
+            case LOGGED_OUT -> "LOGGED_OUT";
+            case LOGGED_IN -> "LOGGED_IN";
+            case IN_GAME -> "IN_GAME";
+            case QUIT -> "";
+            default -> "ERROR";
+        };
+        if (statement.isEmpty()) {
+            return;
+        }
+        out.printf("[%s] >>> ", statement);
     }
 
     private static String[] getLine(Scanner scanner) {

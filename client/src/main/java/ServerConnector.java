@@ -7,34 +7,15 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 public class ServerConnector {
     private static final int TIMEOUT_MILLIS = 5000;
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
-//    public static void main(String[] args) throws IOException, InterruptedException {
-//        if(args.length == 3) {
-//            String host = args[0];
-//            String portString = args[1];
-//            String path = args[2];
-//
-//            var client = new ServerConnector();
-//
-//            try {
-//                client.doGet(host, Integer.parseInt(portString), path);
-//            } catch (URISyntaxException | NumberFormatException e) {
-//                // Print usage if port is not an int or path is invalid
-//                printUsage();
-//            }
-//        } else {
-//            printUsage();
-//        }
-//    }
-
-    private static void printUsage() {
-        System.err.println("USAGE: java GetExample <host> <port> <path>");
-    }
+    private static final Logger logger = Logger.getLogger(ServerConnector.class.getName());
 
     public HttpResponse<String> doGet(String host, int port, String urlPath, String authToken) throws URISyntaxException, IOException, InterruptedException {
         String urlString = String.format("http://%s:%d%s", host, port, urlPath);
@@ -52,11 +33,11 @@ public class ServerConnector {
             HttpHeaders headers = httpResponse.headers();
             Optional<String> lengthHeader = headers.firstValue("Content-Length");
 
-            System.out.printf("Received %s bytes%n", lengthHeader.orElse("unknown"));
+            logger.fine(String.format("Received %s bytes%n", lengthHeader.orElse("unknown")));
         } else {
-            System.out.println("Error: received status code " + httpResponse.statusCode());
+            logger.fine(String.format("Error: received status code " + httpResponse.statusCode()));
         }
-        System.out.println(httpResponse.body());
+        logger.fine(httpResponse.body());
         return httpResponse;
     }
 
@@ -76,11 +57,11 @@ public class ServerConnector {
             HttpHeaders headers = httpResponse.headers();
             Optional<String> lengthHeader = headers.firstValue("Content-Length");
 
-            System.out.printf("Received %s bytes%n", lengthHeader.orElse("unknown"));
+            logger.fine(String.format("Received %s bytes%n", lengthHeader.orElse("unknown")));
         } else {
-            System.out.println("Error: received status code " + httpResponse.statusCode());
+            logger.fine(String.format("Error: received status code " + httpResponse.statusCode()));
         }
-        System.out.println(httpResponse.body());
+        logger.fine(httpResponse.body());
         return httpResponse;
     }
 
@@ -100,20 +81,21 @@ public class ServerConnector {
             HttpHeaders headers = httpResponse.headers();
             Optional<String> lengthHeader = headers.firstValue("Content-Length");
 
-            System.out.printf("Received %s bytes%n", lengthHeader.orElse("unknown"));
+            logger.fine(String.format("Received %s bytes%n", lengthHeader.orElse("unknown")));
         } else {
-            System.out.println("Error: received status code " + httpResponse.statusCode());
+            logger.fine(String.format("Error: received status code " + httpResponse.statusCode()));
         }
-        System.out.println(httpResponse.body());
+        logger.fine(httpResponse.body());
         return httpResponse;
     }
 
-    public HttpResponse<String> doDelete(String host, int port, String urlPath) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> doDelete(String host, int port, String urlPath, String authToken) throws URISyntaxException, IOException, InterruptedException {
         String urlString = String.format("http://%s:%d%s", host, port, urlPath);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(new URI(urlString))
                 .timeout(java.time.Duration.ofMillis(TIMEOUT_MILLIS))
+                .header("authorization", authToken)
                 .DELETE()
                 .build();
 
@@ -123,11 +105,11 @@ public class ServerConnector {
             HttpHeaders headers = httpResponse.headers();
             Optional<String> lengthHeader = headers.firstValue("Content-Length");
 
-            System.out.printf("Received %s bytes%n", lengthHeader.orElse("unknown"));
+            logger.fine(String.format("Received %s bytes%n", lengthHeader.orElse("unknown")));
         } else {
-            System.out.println("Error: received status code " + httpResponse.statusCode());
+            logger.fine(String.format("Error: received status code " + httpResponse.statusCode()));
         }
-        System.out.println(httpResponse.body());
+        logger.fine(httpResponse.body());
         return httpResponse;
     }
 }

@@ -18,8 +18,8 @@ public class ChessUI {
     private static final int BOARD_SIZE_IN_SQUARES = 8;
     private static final int SQUARE_SIZE_IN_PADDED_CHARS = 3;
     private static final int LINE_WIDTH_IN_PADDED_CHARS = 1;
-    private static final String[] COL_HEADERS = {"A", "B", "C", "D", "E", "F", "G", "H"};
-    private static final String[] ROW_HEADERS = {"8", "7", "6", "5", "4", "3", "2", "1"};
+    private static final String[] COL_HEADERS = {"H", "G", "F", "E", "D", "C", "B", "A"};
+    private static final String[] ROW_HEADERS = {"1", "2", "3", "4", "5", "6", "7", "8"};
     public static final String BLACK = "BLACK";
     public static final String WHITE = "WHITE";
 
@@ -30,8 +30,7 @@ public class ChessUI {
         out.print(ERASE_SCREEN);
         drawHeaders(out, color);
         drawChessBoard(out, game, color);
-        out.print(SET_BG_COLOR_BLACK);
-        out.print(SET_TEXT_COLOR_WHITE);
+        out.print(RESET);
     }
 
     public static void main(String[] args) {

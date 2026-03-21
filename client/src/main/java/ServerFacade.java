@@ -22,18 +22,18 @@ public class ServerFacade {
     public HttpResponse<String> login(String username, String password) throws URISyntaxException, IOException, InterruptedException {
         LoginRequest request = new LoginRequest(username, password);
         String jsonString = toJson(request);
-        return server.doPost(host, port, "/session", jsonString, null);
+        return server.doPost(host, port, "/session", jsonString, "");
     }
 
     public HttpResponse<String> logout(String authToken) throws URISyntaxException, IOException, InterruptedException {
         LogoutRequest request = new LogoutRequest(authToken);
-        return server.doDelete(host, port, "/session");
+        return server.doDelete(host, port, "/session", authToken);
     }
 
     public HttpResponse<String> register(String username, String password, String email) throws URISyntaxException, IOException, InterruptedException {
         RegisterRequest request = new RegisterRequest(username, password, email);
         String jsonString = toJson(request);
-        return server.doPost(host, port, "/user", jsonString, null);
+        return server.doPost(host, port, "/user", jsonString, "");
     }
 
     public HttpResponse<String> listGames(String authToken) throws URISyntaxException, IOException, InterruptedException {
@@ -44,7 +44,7 @@ public class ServerFacade {
     public HttpResponse<String> joinGame(String authToken, int gameID, String playerColor) throws URISyntaxException, IOException, InterruptedException {
         JoinGameRequest request = new JoinGameRequest(playerColor, gameID);
         String jsonString = toJson(request);
-        return server.doPut(host, port, "/user", jsonString, authToken);
+        return server.doPut(host, port, "/game", jsonString, authToken);
     }
 
     public HttpResponse<String> createGame(String authToken, String gameName) throws URISyntaxException, IOException, InterruptedException {
@@ -55,7 +55,7 @@ public class ServerFacade {
 
     public HttpResponse<String> clear(String authToken) throws URISyntaxException, IOException, InterruptedException {
         DeleteRequest request = new DeleteRequest(authToken);
-        return server.doDelete(host, port, "/db");
+        return server.doDelete(host, port, "/db", "");
     }
 
     public String toJson(Object body) {
