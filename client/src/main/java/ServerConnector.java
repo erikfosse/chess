@@ -5,6 +5,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 public class ServerConnector {
@@ -35,13 +36,13 @@ public class ServerConnector {
         System.err.println("USAGE: java GetExample <host> <port> <path>");
     }
 
-    public void doGet(String host, int port, String urlPath) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> doGet(String host, int port, String urlPath, String authToken) throws URISyntaxException, IOException, InterruptedException {
         String urlString = String.format("http://%s:%d%s", host, port, urlPath);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(new URI(urlString))
                 .timeout(java.time.Duration.ofMillis(TIMEOUT_MILLIS))
-                .header("authorization", "abc123")
+                .header("authorization", authToken)
                 .GET()
                 .build();
 
@@ -52,10 +53,81 @@ public class ServerConnector {
             Optional<String> lengthHeader = headers.firstValue("Content-Length");
 
             System.out.printf("Received %s bytes%n", lengthHeader.orElse("unknown"));
-            System.out.println(httpResponse.body());
         } else {
             System.out.println("Error: received status code " + httpResponse.statusCode());
-            System.out.println(httpResponse.body());
         }
+        System.out.println(httpResponse.body());
+        return httpResponse;
+    }
+
+    public HttpResponse<String> doPost(String host, int port, String urlPath, String message, String authToken) throws URISyntaxException, IOException, InterruptedException {
+        String urlString = String.format("http://%s:%d%s", host, port, urlPath);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(urlString))
+                .timeout(java.time.Duration.ofMillis(TIMEOUT_MILLIS))
+                .header("authorization", authToken)
+                .POST(HttpRequest.BodyPublishers.ofString(message, StandardCharsets.UTF_8))
+                .build();
+
+        HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(httpResponse.statusCode() == 200) {
+            HttpHeaders headers = httpResponse.headers();
+            Optional<String> lengthHeader = headers.firstValue("Content-Length");
+
+            System.out.printf("Received %s bytes%n", lengthHeader.orElse("unknown"));
+        } else {
+            System.out.println("Error: received status code " + httpResponse.statusCode());
+        }
+        System.out.println(httpResponse.body());
+        return httpResponse;
+    }
+
+    public HttpResponse<String> doPut(String host, int port, String urlPath, String message, String authToken) throws URISyntaxException, IOException, InterruptedException {
+        String urlString = String.format("http://%s:%d%s", host, port, urlPath);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(urlString))
+                .timeout(java.time.Duration.ofMillis(TIMEOUT_MILLIS))
+                .header("authorization", authToken)
+                .PUT(HttpRequest.BodyPublishers.ofString(message, StandardCharsets.UTF_8))
+                .build();
+
+        HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(httpResponse.statusCode() == 200) {
+            HttpHeaders headers = httpResponse.headers();
+            Optional<String> lengthHeader = headers.firstValue("Content-Length");
+
+            System.out.printf("Received %s bytes%n", lengthHeader.orElse("unknown"));
+        } else {
+            System.out.println("Error: received status code " + httpResponse.statusCode());
+        }
+        System.out.println(httpResponse.body());
+        return httpResponse;
+    }
+
+    public HttpResponse<String> doDelete(String host, int port, String urlPath) throws URISyntaxException, IOException, InterruptedException {
+        String urlString = String.format("http://%s:%d%s", host, port, urlPath);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(urlString))
+                .timeout(java.time.Duration.ofMillis(TIMEOUT_MILLIS))
+                .DELETE()
+                .build();
+
+        HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(httpResponse.statusCode() == 200) {
+            HttpHeaders headers = httpResponse.headers();
+            Optional<String> lengthHeader = headers.firstValue("Content-Length");
+
+            System.out.printf("Received %s bytes%n", lengthHeader.orElse("unknown"));
+        } else {
+            System.out.println("Error: received status code " + httpResponse.statusCode());
+        }
+        System.out.println(httpResponse.body());
+        return httpResponse;
     }
 }

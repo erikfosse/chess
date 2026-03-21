@@ -9,12 +9,12 @@ import java.util.Scanner;
 public class Client {
 
     private static final HttpClient httpClient = HttpClient.newHttpClient();
-    private static String uiState;
-    private static final String LOGGED_OUT = "LOGGED_OUT";
-    private static final String LOGGED_IN = "LOGGED_IN";
+    private static int status;
+    private static final int LOGGED_OUT = -1;
+    private static final int LOGGED_IN = 0;
 
     public static void main(String[] args) {
-        uiState = LOGGED_OUT;
+        status = LOGGED_OUT;
         run();
     }
 
@@ -23,7 +23,7 @@ public class Client {
         PrintStream out = System.out;
         commandline(System.out);
         while (true) {
-            switch (uiState) {
+            switch (status) {
                 case LOGGED_OUT -> preLoginUI(out, scanner);
                 case LOGGED_IN -> postLoginUI(out, scanner);
             }
@@ -70,7 +70,7 @@ public class Client {
     }
 
     public static void commandline(PrintStream out) {
-        out.printf("[%s] >>> ", uiState);
+        out.printf("[%s] >>> ", status);
     }
 
     public static String[] getline(Scanner scanner) {
