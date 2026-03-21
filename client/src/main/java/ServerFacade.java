@@ -68,7 +68,7 @@ public class ServerFacade {
         return gson.fromJson(body, requestClass);
     }
 
-    private static boolean isInt(String value) {
+    public static boolean isInt(String value) {
         try {
             Integer.parseInt(value);
             return true;

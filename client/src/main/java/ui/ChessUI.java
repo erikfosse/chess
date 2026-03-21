@@ -20,11 +20,11 @@ public class ChessUI {
     private static final int LINE_WIDTH_IN_PADDED_CHARS = 1;
     private static final String[] COL_HEADERS = {"A", "B", "C", "D", "E", "F", "G", "H"};
     private static final String[] ROW_HEADERS = {"8", "7", "6", "5", "4", "3", "2", "1"};
-    private static final String BLACK = "BLACK";
-    private static final String WHITE = "WHITE";
+    public static final String BLACK = "BLACK";
+    public static final String WHITE = "WHITE";
 
 
-    public ChessUI(ChessGame game, String color) {
+    private ChessUI(ChessGame game, String color) {
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
         out.print(ERASE_SCREEN);
@@ -37,6 +37,10 @@ public class ChessUI {
     public static void main(String[] args) {
         ChessGame game = new ChessGame();
         new ChessUI(game, WHITE);
+    }
+
+    public static void run(ChessGame game, String color) {
+        new ChessUI(game, color);
     }
 
     private static void drawHeaders(PrintStream out, String color) {

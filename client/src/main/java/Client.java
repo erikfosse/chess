@@ -2,16 +2,19 @@
 
 import model.GameRecord;
 import model.result.*;
+import ui.ChessUI;
 
 import java.io.PrintStream;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Client {
 
     private static final HttpClient httpClient = HttpClient.newHttpClient();
     private static String authToken;
+    private static ArrayList<GameRecord> games;
     private static int status;
     private static final int LOGGED_OUT = -1;
     private static final int LOGGED_IN = 0;
@@ -168,7 +171,8 @@ public class Client {
             gameSwitch(out, result);
             if (result.statusCode() == 200) {
                 ListGamesResult res = (ListGamesResult) serverFacade.fromJson(result.body(), ListGamesResult.class);
-                for (GameRecord game : res.games()) {
+                games = res.games();
+                for (GameRecord game : games) {
                     out.printf("#%d %s white: %s, black: %s%n", game.gameID(), game.gameName(), game.whiteUsername(), game.blackUsername());
                 }
             }
@@ -194,7 +198,18 @@ public class Client {
     }
 
     private static void observeGame(PrintStream out, String[] param) {
-
+        if (param.length != 1) {
+            out.println("Incorrect number of parameters: please enter <ID>");
+            return;
+        }
+        for (GameRecord game : games) {
+            if (ServerFacade.isInt(param[0])) {
+                int id = Integer.parseInt(param[0]);
+                if (game.gameID().equals(id)) {
+                    ChessUI.run(game.game(), ChessUI.WHITE);
+                }
+            }
+        }
     }
 
     private static void logoutGame(PrintStream out, String[] param) {
