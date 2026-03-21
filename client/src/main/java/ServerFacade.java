@@ -19,17 +19,15 @@ public class ServerFacade {
         ServerFacade.port = port;
     }
 
-    public LoginResult login(String username, String password) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> login(String username, String password) throws URISyntaxException, IOException, InterruptedException {
         LoginRequest request = new LoginRequest(username, password);
         String jsonString = toJson(request);
-        HttpResponse<String> response = server.doPost(host, port, "/session", jsonString, null);
-        return (LoginResult) fromJson(response.body(), LoginResult.class);
+        return server.doPost(host, port, "/session", jsonString, null);
     }
 
-    public LogoutResult logout(String authToken) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> logout(String authToken) throws URISyntaxException, IOException, InterruptedException {
         LogoutRequest request = new LogoutRequest(authToken);
-        HttpResponse<String> response = server.doDelete(host, port, "/session");
-        return (LogoutResult) fromJson(response.body(), LogoutResult.class);
+        return server.doDelete(host, port, "/session");
     }
 
     public HttpResponse<String> register(String username, String password, String email) throws URISyntaxException, IOException, InterruptedException {
@@ -38,38 +36,34 @@ public class ServerFacade {
         return server.doPost(host, port, "/user", jsonString, null);
     }
 
-    public ListGamesResult listGames(String authToken) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> listGames(String authToken) throws URISyntaxException, IOException, InterruptedException {
         ListGamesRequest request = new ListGamesRequest(authToken);
-        HttpResponse<String> response = server.doGet(host, port, "/game", authToken);
-        return (ListGamesResult) fromJson(response.body(), RegisterResult.class);
+        return server.doGet(host, port, "/game", authToken);
     }
 
-    public JoinGameResult joinGame(String authToken, String playerColor, int gameID) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> joinGame(String authToken, String playerColor, int gameID) throws URISyntaxException, IOException, InterruptedException {
         JoinGameRequest request = new JoinGameRequest(playerColor, gameID);
         String jsonString = toJson(request);
-        HttpResponse<String> response = server.doPut(host, port, "/user", jsonString, authToken);
-        return (JoinGameResult) fromJson(response.body(), RegisterResult.class);
+        return server.doPut(host, port, "/user", jsonString, authToken);
     }
 
-    public CreateGameResult createGame(String authToken, String gameName) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> createGame(String authToken, String gameName) throws URISyntaxException, IOException, InterruptedException {
         CreateGameRequest request = new CreateGameRequest(gameName);
         String jsonString = toJson(request);
-        HttpResponse<String> response = server.doPost(host, port, "/game", jsonString, authToken);
-        return (CreateGameResult) fromJson(response.body(), RegisterResult.class);
+        return server.doPost(host, port, "/game", jsonString, authToken);
     }
 
-    public DeleteResult clear(String authToken) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> clear(String authToken) throws URISyntaxException, IOException, InterruptedException {
         DeleteRequest request = new DeleteRequest(authToken);
-        HttpResponse<String> response = server.doDelete(host, port, "/db");
-        return (DeleteResult) fromJson(response.body(), RegisterResult.class);
+        return server.doDelete(host, port, "/db");
     }
 
-    private String toJson(Object body) {
+    public String toJson(Object body) {
         Gson gson = new Gson();
         return gson.toJson(body);
     }
 
-    private Object fromJson(String body, Class<?> requestClass) {
+    public Object fromJson(String body, Class<?> requestClass) {
         Gson gson = new Gson();
         return gson.fromJson(body, requestClass);
     }

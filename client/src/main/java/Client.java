@@ -1,10 +1,10 @@
 //import ServerConnector;
 
+import model.result.CreateGameResult;
+import model.result.LoginResult;
 import model.result.RegisterResult;
 
-import java.io.IOException;
 import java.io.PrintStream;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.util.Scanner;
@@ -12,6 +12,7 @@ import java.util.Scanner;
 public class Client {
 
     private static final HttpClient httpClient = HttpClient.newHttpClient();
+    private static String authToken;
     private static int status;
     private static final int LOGGED_OUT = -1;
     private static final int LOGGED_IN = 0;
@@ -33,7 +34,7 @@ public class Client {
         serverFacade = new ServerFacade(host, port);
         Scanner scanner = new Scanner(System.in);
         PrintStream out = System.out;
-        commandline(System.out);
+        printCommandline(System.out);
 
         status = LOGGED_OUT;
         while (true) {
@@ -47,7 +48,7 @@ public class Client {
     private static void preLoginUI(PrintStream out, Scanner scanner) {
         outer:
         while (scanner.hasNext()) {
-            String[] commands = getline(scanner);
+            String[] commands = getLine(scanner);
             switch (commands[0]) {
                 case "help" -> preLoginHelp(out);
                 case "login" -> login(out, commands);
@@ -57,7 +58,7 @@ public class Client {
                 }
                 default -> out.println("Incorrect Command");
             }
-            commandline(out);
+            printCommandline(out);
             break;
         }
     }
@@ -65,10 +66,15 @@ public class Client {
     private static void register(PrintStream out, String[] param) {
         if (param.length != 3) {
             out.println("Incorrect number of parameters: please enter <USERNAME> <PASSWORD> <EMAIL>");
+            return;
         }
         try {
             HttpResponse<String> result = serverFacade.register(param[0], param[1], param[2]);
             registerLoginSwitch(out, result);
+            if (result.statusCode() == 200) {
+                RegisterResult res = (RegisterResult) serverFacade.fromJson(result.body(), RegisterResult.class);
+                authToken = res.authToken();
+            }
         } catch (Exception e) {
             out.println("Incorrect parameter input");
         }
@@ -78,10 +84,15 @@ public class Client {
     private static void login(PrintStream out, String[] param) {
         if (param.length != 2) {
             out.println("Incorrect number of parameters: please enter <USERNAME> <PASSWORD>");
+            return;
         }
         try {
             HttpResponse<String> result = serverFacade.register(param[0], param[1], param[2]);
             registerLoginSwitch(out, result);
+            if (result.statusCode() == 200) {
+                LoginResult res = (LoginResult) serverFacade.fromJson(result.body(), LoginResult.class);
+                authToken = res.authToken();
+            }
         } catch (Exception e) {
             out.println("Incorrect parameter input");
         }
@@ -109,25 +120,59 @@ public class Client {
     private static void postLoginUI(PrintStream out, Scanner scanner) {
         outer:
         while (scanner.hasNext()) {
-            String[] commands = getline(scanner);
+            String[] commands = getLine(scanner);
             switch (commands[0]) {
-                case "create" -> preLoginHelp(out);
-                case "list" -> list(out, commands);
-                case "join" -> register(out);
-                case "observe" -> register(out);
-                case "logout" -> register(out);
+                case "create" -> createGame(out, commands);
+                case "list" -> listGames(out, commands);
+                case "join" -> joinGame(out, commands);
+                case "observe" -> observeGame(out, commands);
+                case "logout" -> logoutGame(out, commands);
                 case "help" -> postLoginHelp(out);
                 case "quite" -> {
                     break outer;
                 }
                 default -> System.out.println("Incorrect Command");
             }
-            commandline(System.out);
+            printCommandline(System.out);
             break;
         }
     }
 
-    private static void
+    private static void createGame(PrintStream out, String[] param) {
+        if (param.length != 1) {
+            out.println("Incorrect number of parameters: please enter <NAME>");
+            return;
+        } if (authToken.isEmpty()) {
+            out.println("Unauthorized");
+            return;
+        }
+        try {
+            HttpResponse<String> result = serverFacade.createGame(authToken, param[0]);
+            gameSwitch(out, result);
+            if (result.statusCode() == 200) {
+                CreateGameResult res = (CreateGameResult) serverFacade.fromJson(result.body(), CreateGameResult.class);
+                out.printf("Success: %s %d%n", param[0], res.gameID());
+            }
+        } catch (Exception e) {
+            out.println("Incorrect parameter input");
+        }
+    }
+
+    private static void listGames(PrintStream out, String[] param) {
+
+    }
+
+    private static void joinGame(PrintStream out, String[] param) {
+
+    }
+
+    private static void observeGame(PrintStream out, String[] param) {
+
+    }
+
+    private static void logoutGame(PrintStream out, String[] param) {
+
+    }
 
     private static void postLoginHelp(PrintStream out) {
         out.println("""
@@ -141,13 +186,22 @@ public class Client {
                 """);
     }
 
-    private static void commandline(PrintStream out) {
+    private static void gameSwitch(PrintStream out, HttpResponse<String> result) {
+        switch (result.statusCode()) {
+            case 200 -> out.print("");
+            case 400 -> out.println("Incorrect input");
+            case 401 -> out.println("Unauthorized to fulfill this request");
+            case 403 -> out.println("Username/Password already taken. Please select another and try again");
+            default -> out.println("An Error has occurred");
+        }
+    }
+
+    private static void printCommandline(PrintStream out) {
         out.printf("[%s] >>> ", status);
     }
 
-    private static String[] getline(Scanner scanner) {
+    private static String[] getLine(Scanner scanner) {
         String line = scanner.nextLine();
-        String[] commands = line.split(" ");
-        return commands;
+        return line.split(" ");
     }
 }
