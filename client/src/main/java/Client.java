@@ -1,6 +1,8 @@
 //import ServerConnector;
 
+import model.GameRecord;
 import model.result.CreateGameResult;
+import model.result.ListGamesResult;
 import model.result.LoginResult;
 import model.result.RegisterResult;
 
@@ -121,6 +123,10 @@ public class Client {
         outer:
         while (scanner.hasNext()) {
             String[] commands = getLine(scanner);
+            if (isAuthorized()) {
+                out.println("Unauthorized");
+                break;
+            }
             switch (commands[0]) {
                 case "create" -> createGame(out, commands);
                 case "list" -> listGames(out, commands);
@@ -142,9 +148,6 @@ public class Client {
         if (param.length != 1) {
             out.println("Incorrect number of parameters: please enter <NAME>");
             return;
-        } if (authToken.isEmpty()) {
-            out.println("Unauthorized");
-            return;
         }
         try {
             HttpResponse<String> result = serverFacade.createGame(authToken, param[0]);
@@ -159,11 +162,39 @@ public class Client {
     }
 
     private static void listGames(PrintStream out, String[] param) {
-
+        if (param.length != 0) {
+            out.println("Incorrect number of parameters: please enter <NAME>");
+            return;
+        }
+        try {
+            HttpResponse<String> result = serverFacade.listGames(authToken);
+            gameSwitch(out, result);
+            if (result.statusCode() == 200) {
+                ListGamesResult res = (ListGamesResult) serverFacade.fromJson(result.body(), ListGamesResult.class);
+                for (GameRecord game : res.games()) {
+                    out.printf("#%d %s white: %s, black: %s%n", game.gameID(), game.gameName(), game.whiteUsername(), game.blackUsername());
+                }
+            }
+        } catch (Exception e) {
+            out.println("Incorrect parameter input");
+        }
     }
 
     private static void joinGame(PrintStream out, String[] param) {
-
+        if (param.length != 2) {
+            out.println("Incorrect number of parameters: please enter <ID> [WHITE|BLACK]");
+            return;
+        }
+        try {
+            HttpResponse<String> result = serverFacade.createGame(authToken, param[0]);
+            gameSwitch(out, result);
+            if (result.statusCode() == 200) {
+                CreateGameResult res = (CreateGameResult) serverFacade.fromJson(result.body(), CreateGameResult.class);
+                out.printf("Success: %s %d%n", param[0], res.gameID());
+            }
+        } catch (Exception e) {
+            out.println("Incorrect parameter input");
+        }
     }
 
     private static void observeGame(PrintStream out, String[] param) {
@@ -203,5 +234,9 @@ public class Client {
     private static String[] getLine(Scanner scanner) {
         String line = scanner.nextLine();
         return line.split(" ");
+    }
+
+    private static boolean isAuthorized() {
+        return !authToken.isEmpty();
     }
 }
