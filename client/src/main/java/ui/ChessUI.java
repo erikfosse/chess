@@ -46,7 +46,7 @@ public class ChessUI {
                 drawHeader(out, COL_HEADERS[boardCol]);
             }
         } else {
-            for (int boardCol = BOARD_SIZE_IN_SQUARES -1 ; boardCol >= 0; --boardCol) {
+            for (int boardCol = BOARD_SIZE_IN_SQUARES - 1; boardCol >= 0; --boardCol) {
                 drawHeader(out, COL_HEADERS[boardCol]);
             }
         }
@@ -107,8 +107,7 @@ public class ChessUI {
                     } else {
                         out.print(EMPTY.repeat(SQUARE_SIZE_IN_PADDED_CHARS));
                     }
-                }
-                else {
+                } else {
                     out.print(EMPTY.repeat(SQUARE_SIZE_IN_PADDED_CHARS));
                 }
                 count++;

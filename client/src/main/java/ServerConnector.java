@@ -48,7 +48,7 @@ public class ServerConnector {
 
         HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        if(httpResponse.statusCode() == 200) {
+        if (httpResponse.statusCode() == 200) {
             HttpHeaders headers = httpResponse.headers();
             Optional<String> lengthHeader = headers.firstValue("Content-Length");
 
@@ -72,7 +72,7 @@ public class ServerConnector {
 
         HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        if(httpResponse.statusCode() == 200) {
+        if (httpResponse.statusCode() == 200) {
             HttpHeaders headers = httpResponse.headers();
             Optional<String> lengthHeader = headers.firstValue("Content-Length");
 
@@ -96,7 +96,7 @@ public class ServerConnector {
 
         HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        if(httpResponse.statusCode() == 200) {
+        if (httpResponse.statusCode() == 200) {
             HttpHeaders headers = httpResponse.headers();
             Optional<String> lengthHeader = headers.firstValue("Content-Length");
 
@@ -119,7 +119,7 @@ public class ServerConnector {
 
         HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        if(httpResponse.statusCode() == 200) {
+        if (httpResponse.statusCode() == 200) {
             HttpHeaders headers = httpResponse.headers();
             Optional<String> lengthHeader = headers.firstValue("Content-Length");
 

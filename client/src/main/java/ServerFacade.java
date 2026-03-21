@@ -13,8 +13,10 @@ public class ServerFacade {
     private static String host;
     private static int port;
 
-    public ServerFacade() {
+    public ServerFacade(String host, int port) {
         server = new ServerConnector();
+        ServerFacade.host = host;
+        ServerFacade.port = port;
     }
 
     public LoginResult login(String username, String password) throws URISyntaxException, IOException, InterruptedException {
@@ -30,11 +32,10 @@ public class ServerFacade {
         return (LogoutResult) fromJson(response.body(), LogoutResult.class);
     }
 
-    public RegisterResult register(String username, String password, String email) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> register(String username, String password, String email) throws URISyntaxException, IOException, InterruptedException {
         RegisterRequest request = new RegisterRequest(username, password, email);
         String jsonString = toJson(request);
-        HttpResponse<String> response = server.doPost(host, port, "/user", jsonString, null);
-        return (RegisterResult) fromJson(response.body(), RegisterResult.class);
+        return server.doPost(host, port, "/user", jsonString, null);
     }
 
     public ListGamesResult listGames(String authToken) throws URISyntaxException, IOException, InterruptedException {
@@ -71,5 +72,14 @@ public class ServerFacade {
     private Object fromJson(String body, Class<?> requestClass) {
         Gson gson = new Gson();
         return gson.fromJson(body, requestClass);
+    }
+
+    private static boolean isInt(String value) {
+        try {
+            Integer.parseInt(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 }
