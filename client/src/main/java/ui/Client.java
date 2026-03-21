@@ -1,10 +1,14 @@
-package client;
+package ui;
+
+//import ServerConnector;
 
 import java.io.PrintStream;
+import java.net.http.HttpClient;
 import java.util.Scanner;
 
-public class ClientMain {
+public class Client {
 
+    private static final HttpClient httpClient = HttpClient.newHttpClient();
     private static String uiState;
     private static final String LOGGED_OUT = "LOGGED_OUT";
     private static final String LOGGED_IN = "LOGGED_IN";
@@ -32,7 +36,7 @@ public class ClientMain {
             String[] commands = getline(scanner);
             switch (commands[0]) {
                 case "help" -> preLoginHelp(System.out);
-                case "login" -> login(System.out, commands);
+//                case "login" -> login(System.out, commands);
                 case "register" -> register(System.out);
                 case "quit" -> {
                     break outer;
@@ -50,7 +54,7 @@ public class ClientMain {
             String[] commands = getline(scanner);
             switch (commands[0]) {
                 case "create" -> preLoginHelp(out);
-                case "list" -> login(out, commands);
+//                case "list" -> login(out, commands);
                 case "join" -> register(out);
                 case "observe" -> register(out);
                 case "logout" -> register(out);
@@ -100,9 +104,11 @@ public class ClientMain {
 
     }
 
-    public static void login(PrintStream out, String[] commands) {
-        if (commands.length == 4) {
-            uiState = LOGGED_IN;
-        }
-    }
+//    public static void login(PrintStream out, String[] commands) {
+//        if (commands.length == 4) {
+//            ServerConnector server = new ServerConnector();
+//            server.get("localhost", 8080, "")
+//            uiState = LOGGED_IN;
+//        }
+//    }
 }
