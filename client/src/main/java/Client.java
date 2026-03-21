@@ -1,10 +1,7 @@
 //import ServerConnector;
 
 import model.GameRecord;
-import model.result.CreateGameResult;
-import model.result.ListGamesResult;
-import model.result.LoginResult;
-import model.result.RegisterResult;
+import model.result.*;
 
 import java.io.PrintStream;
 import java.net.http.HttpClient;
@@ -163,7 +160,7 @@ public class Client {
 
     private static void listGames(PrintStream out, String[] param) {
         if (param.length != 0) {
-            out.println("Incorrect number of parameters: please enter <NAME>");
+            out.println("No parameters are needed for list");
             return;
         }
         try {
@@ -186,11 +183,10 @@ public class Client {
             return;
         }
         try {
-            HttpResponse<String> result = serverFacade.createGame(authToken, param[0]);
+            HttpResponse<String> result = serverFacade.joinGame(authToken, Integer.parseInt(param[0]), param[1]);
             gameSwitch(out, result);
             if (result.statusCode() == 200) {
-                CreateGameResult res = (CreateGameResult) serverFacade.fromJson(result.body(), CreateGameResult.class);
-                out.printf("Success: %s %d%n", param[0], res.gameID());
+                JoinGameResult res = (JoinGameResult) serverFacade.fromJson(result.body(), JoinGameResult.class);
             }
         } catch (Exception e) {
             out.println("Incorrect parameter input");

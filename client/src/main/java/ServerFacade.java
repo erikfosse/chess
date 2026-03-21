@@ -41,7 +41,7 @@ public class ServerFacade {
         return server.doGet(host, port, "/game", authToken);
     }
 
-    public HttpResponse<String> joinGame(String authToken, String playerColor, int gameID) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> joinGame(String authToken, int gameID, String playerColor) throws URISyntaxException, IOException, InterruptedException {
         JoinGameRequest request = new JoinGameRequest(playerColor, gameID);
         String jsonString = toJson(request);
         return server.doPut(host, port, "/user", jsonString, authToken);
