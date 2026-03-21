@@ -213,7 +213,20 @@ public class Client {
     }
 
     private static void logoutGame(PrintStream out, String[] param) {
-
+        if (param.length != 0) {
+            out.println("No parameters are needed for list");
+            return;
+        }
+        try {
+            HttpResponse<String> result = serverFacade.logout(authToken);
+            gameSwitch(out, result);
+            if (result.statusCode() == 200) {
+                LogoutResult res = (LogoutResult) serverFacade.fromJson(result.body(), LogoutResult.class);
+                status = LOGGED_OUT;
+            }
+        } catch (Exception e) {
+            out.println("Incorrect parameter input");
+        }
     }
 
     private static void postLoginHelp(PrintStream out) {
