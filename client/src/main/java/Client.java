@@ -1,6 +1,7 @@
 //import ServerConnector;
 
 import model.GameRecord;
+import model.JsonSerialization;
 import model.result.*;
 import ui.ChessUI;
 
@@ -77,7 +78,7 @@ public class Client {
             HttpResponse<String> result = serverFacade.register(param[1], param[2], param[3]);
             registerLoginSwitch(out, result);
             if (result.statusCode() == 200) {
-                RegisterResult res = (RegisterResult) serverFacade.fromJson(result.body(), RegisterResult.class);
+                RegisterResult res = (RegisterResult) JsonSerialization.fromJson(result.body(), RegisterResult.class);
                 authToken = res.authToken();
             }
         } catch (Exception e) {
@@ -95,7 +96,7 @@ public class Client {
             HttpResponse<String> result = serverFacade.login(param[1], param[2]);
             registerLoginSwitch(out, result);
             if (result.statusCode() == 200) {
-                LoginResult res = (LoginResult) serverFacade.fromJson(result.body(), LoginResult.class);
+                LoginResult res = (LoginResult) JsonSerialization.fromJson(result.body(), LoginResult.class);
                 authToken = res.authToken();
             }
         } catch (Exception e) {
@@ -157,7 +158,7 @@ public class Client {
             HttpResponse<String> result = serverFacade.createGame(authToken, param[1]);
             gameSwitch(out, result);
             if (result.statusCode() == 200) {
-                CreateGameResult res = (CreateGameResult) serverFacade.fromJson(result.body(), CreateGameResult.class);
+                CreateGameResult res = (CreateGameResult) JsonSerialization.fromJson(result.body(), CreateGameResult.class);
                 out.printf("Success: %s ID: %d%n", param[1], res.gameID());
             }
         } catch (Exception e) {
@@ -176,8 +177,10 @@ public class Client {
                 out.println("No active games");
                 return;
             }
+            int i = 1;
             for (GameRecord game : games) {
-                out.printf("#%d - %s %n  white: %s, %n  black: %s%n", game.gameID(), game.gameName(), game.whiteUsername(), game.blackUsername());
+                out.printf("#%d - %s %n  white: %s, %n  black: %s%n", i, game.gameName(), game.whiteUsername(), game.blackUsername());
+                i++;
             }
         } catch (Exception e) {
             out.println("Incorrect parameter input");
@@ -188,10 +191,25 @@ public class Client {
         HttpResponse<String> result = serverFacade.listGames(authToken);
         gameSwitch(out, result);
         if (result.statusCode() == 200) {
-            ListGamesResult res = (ListGamesResult) serverFacade.fromJson(result.body(), ListGamesResult.class);
+            ListGamesResult res = (ListGamesResult) JsonSerialization.fromJson(result.body(), ListGamesResult.class);
             return res.games();
         }
         return null;
+    }
+
+    private static Integer getGameID(PrintStream out, int num) throws URISyntaxException, IOException, InterruptedException {
+        HttpResponse<String> result = serverFacade.listGames(authToken);
+        gameSwitch(out, result);
+        if (result.statusCode() == 200) {
+            ListGamesResult res = (ListGamesResult) JsonSerialization.fromJson(result.body(), ListGamesResult.class);
+            int i = 1;
+            for (GameRecord game : res.games()) {
+                if (num == i) {
+                    return game.gameID();
+                }
+            }
+        }
+        return 0;
     }
 
     private static void joinGame(PrintStream out, String[] param) {
@@ -200,10 +218,15 @@ public class Client {
             return;
         }
         try {
-            HttpResponse<String> result = serverFacade.joinGame(authToken, Integer.parseInt(param[1]), param[2].toUpperCase());
+            int gameID = getGameID(out, Integer.parseInt(param[1]));
+            if (gameID == 0) {
+                out.println("No current games to join");
+                return;
+            }
+            HttpResponse<String> result = serverFacade.joinGame(authToken, gameID, param[2].toUpperCase());
             gameSwitch(out, result);
             if (result.statusCode() == 200) {
-                JoinGameResult res = (JoinGameResult) serverFacade.fromJson(result.body(), JoinGameResult.class);
+                JoinGameResult res = (JoinGameResult) JsonSerialization.fromJson(result.body(), JoinGameResult.class);
             }
         } catch (Exception e) {
             out.println("Incorrect parameter input");
@@ -216,7 +239,7 @@ public class Client {
             return;
         }
         for (GameRecord game : games) {
-            if (ServerFacade.isInt(param[1])) {
+            if (JsonSerialization.isInt(param[1])) {
                 int id = Integer.parseInt(param[1]);
                 if (game.gameID().equals(id)) {
                     ChessUI.run(game.game(), ChessUI.WHITE);
@@ -234,7 +257,7 @@ public class Client {
             HttpResponse<String> result = serverFacade.logout(authToken);
             gameSwitch(out, result);
             if (result.statusCode() == 200) {
-                LogoutResult res = (LogoutResult) serverFacade.fromJson(result.body(), LogoutResult.class);
+                LogoutResult res = (LogoutResult) JsonSerialization.fromJson(result.body(), LogoutResult.class);
                 status = LOGGED_OUT;
             }
         } catch (Exception e) {
