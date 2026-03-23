@@ -1,13 +1,13 @@
-//import ServerConnector;
+//import serverfacade.ServerConnector;
 
 import model.GameRecord;
 import model.JsonSerialization;
 import model.result.*;
+import serverfacade.ServerFacade;
 import ui.ChessUI;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.lang.reflect.Array;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;

@@ -1,9 +1,7 @@
-import com.google.gson.Gson;
+package serverfacade;
+
 import model.JsonSerialization;
 import model.request.*;
-import model.result.*;
-import model.JsonSerialization.*;
-import server.Server;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -53,7 +51,7 @@ public class ServerFacade {
         return server.doPost(host, port, "/game", jsonString, authToken);
     }
 
-    public HttpResponse<String> clear(String authToken) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> clear() throws URISyntaxException, IOException, InterruptedException {
         return server.doDelete(host, port, "/db", "");
     }
 

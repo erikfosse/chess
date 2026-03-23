@@ -1,3 +1,5 @@
+package serverfacade;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -7,7 +9,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 public class ServerConnector {
