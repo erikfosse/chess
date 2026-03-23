@@ -19,33 +19,39 @@ public class ServerFacade {
         ServerFacade.port = port;
     }
 
-    public HttpResponse<String> login(String username, String password) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> login(String username, String password)
+            throws URISyntaxException, IOException, InterruptedException {
         LoginRequest request = new LoginRequest(username, password);
         String jsonString = JsonSerialization.toJson(request);
         return server.doPost(host, port, "/session", jsonString, "");
     }
 
-    public HttpResponse<String> logout(String authToken) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> logout(String authToken)
+            throws URISyntaxException, IOException, InterruptedException {
         return server.doDelete(host, port, "/session", authToken);
     }
 
-    public HttpResponse<String> register(String username, String password, String email) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> register(String username, String password, String email)
+            throws URISyntaxException, IOException, InterruptedException {
         RegisterRequest request = new RegisterRequest(username, password, email);
         String jsonString = JsonSerialization.toJson(request);
         return server.doPost(host, port, "/user", jsonString, "");
     }
 
-    public HttpResponse<String> listGames(String authToken) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> listGames(String authToken)
+            throws URISyntaxException, IOException, InterruptedException {
         return server.doGet(host, port, "/game", authToken);
     }
 
-    public HttpResponse<String> joinGame(String authToken, int gameID, String playerColor) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> joinGame(String authToken, int gameID, String playerColor)
+            throws URISyntaxException, IOException, InterruptedException {
         JoinGameRequest request = new JoinGameRequest(playerColor, gameID);
         String jsonString = JsonSerialization.toJson(request);
         return server.doPut(host, port, "/game", jsonString, authToken);
     }
 
-    public HttpResponse<String> createGame(String authToken, String gameName) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> createGame(String authToken, String gameName)
+            throws URISyntaxException, IOException, InterruptedException {
         CreateGameRequest request = new CreateGameRequest(gameName);
         String jsonString = JsonSerialization.toJson(request);
         return server.doPost(host, port, "/game", jsonString, authToken);
