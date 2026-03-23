@@ -9,14 +9,12 @@ import ui.ChessUI;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
-import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Client {
 
-    private static final HttpClient httpClient = HttpClient.newHttpClient();
     private static String authToken;
     private static ArrayList<GameRecord> games;
     private static int status;

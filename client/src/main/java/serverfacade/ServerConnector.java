@@ -16,9 +16,11 @@ public class ServerConnector {
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
-    private static final Logger logger = Logger.getLogger(ServerConnector.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ServerConnector.class.getName());
 
-    public HttpResponse<String> doGet(String host, int port, String urlPath, String authToken) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> doGet(String host, int port, String urlPath, String authToken)
+            throws URISyntaxException, IOException, InterruptedException {
+
         String urlString = String.format("http://%s:%d%s", host, port, urlPath);
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -29,20 +31,12 @@ public class ServerConnector {
                 .build();
 
         HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-        if (httpResponse.statusCode() == 200) {
-            HttpHeaders headers = httpResponse.headers();
-            Optional<String> lengthHeader = headers.firstValue("Content-Length");
-
-            logger.fine(String.format("Received %s bytes%n", lengthHeader.orElse("unknown")));
-        } else {
-            logger.fine(String.format("Error: received status code " + httpResponse.statusCode()));
-        }
-        logger.fine(httpResponse.body());
-        return httpResponse;
+        return handleHttp(httpResponse);
     }
 
-    public HttpResponse<String> doPost(String host, int port, String urlPath, String message, String authToken) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> doPost(String host, int port, String urlPath, String message, String authToken)
+            throws URISyntaxException, IOException, InterruptedException {
+
         String urlString = String.format("http://%s:%d%s", host, port, urlPath);
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -53,20 +47,12 @@ public class ServerConnector {
                 .build();
 
         HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-        if (httpResponse.statusCode() == 200) {
-            HttpHeaders headers = httpResponse.headers();
-            Optional<String> lengthHeader = headers.firstValue("Content-Length");
-
-            logger.fine(String.format("Received %s bytes%n", lengthHeader.orElse("unknown")));
-        } else {
-            logger.fine(String.format("Error: received status code " + httpResponse.statusCode()));
-        }
-        logger.fine(httpResponse.body());
-        return httpResponse;
+        return handleHttp(httpResponse);
     }
 
-    public HttpResponse<String> doPut(String host, int port, String urlPath, String message, String authToken) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> doPut(String host, int port, String urlPath, String message, String authToken)
+            throws URISyntaxException, IOException, InterruptedException {
+
         String urlString = String.format("http://%s:%d%s", host, port, urlPath);
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -77,20 +63,12 @@ public class ServerConnector {
                 .build();
 
         HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-        if (httpResponse.statusCode() == 200) {
-            HttpHeaders headers = httpResponse.headers();
-            Optional<String> lengthHeader = headers.firstValue("Content-Length");
-
-            logger.fine(String.format("Received %s bytes%n", lengthHeader.orElse("unknown")));
-        } else {
-            logger.fine(String.format("Error: received status code " + httpResponse.statusCode()));
-        }
-        logger.fine(httpResponse.body());
-        return httpResponse;
+        return handleHttp(httpResponse);
     }
 
-    public HttpResponse<String> doDelete(String host, int port, String urlPath, String authToken) throws URISyntaxException, IOException, InterruptedException {
+    public HttpResponse<String> doDelete(String host, int port, String urlPath, String authToken)
+            throws URISyntaxException, IOException, InterruptedException {
+
         String urlString = String.format("http://%s:%d%s", host, port, urlPath);
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -101,16 +79,19 @@ public class ServerConnector {
                 .build();
 
         HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        return handleHttp(httpResponse);
+    }
 
+    private HttpResponse<String> handleHttp(HttpResponse<String> httpResponse) {
         if (httpResponse.statusCode() == 200) {
             HttpHeaders headers = httpResponse.headers();
             Optional<String> lengthHeader = headers.firstValue("Content-Length");
 
-            logger.fine(String.format("Received %s bytes%n", lengthHeader.orElse("unknown")));
+            LOGGER.fine(String.format("Received %s bytes%n", lengthHeader.orElse("unknown")));
         } else {
-            logger.fine(String.format("Error: received status code " + httpResponse.statusCode()));
+            LOGGER.fine(String.format("Error: received status code " + httpResponse.statusCode()));
         }
-        logger.fine(httpResponse.body());
+        LOGGER.fine(httpResponse.body());
         return httpResponse;
     }
 }
