@@ -1,5 +1,6 @@
 //import serverfacade.ServerConnector;
 
+import chess.ChessGame;
 import model.GameRecord;
 import model.JsonSerialization;
 import model.result.*;
@@ -107,7 +108,7 @@ public class Client {
             case 200 -> status = LOGGED_IN;
             case 400 -> out.println("Incorrect input");
             case 401 -> out.println("Unauthorized to fulfill this request");
-            case 403 -> out.println("Username/Password already taken. Please select another and try again");
+            case 403 -> out.println("Already Taken");
             default -> out.println("An Error has occurred");
         }
     }
@@ -157,7 +158,7 @@ public class Client {
             gameSwitch(out, result);
             if (result.statusCode() == 200) {
                 CreateGameResult res = (CreateGameResult) JsonSerialization.fromJson(result.body(), CreateGameResult.class);
-                out.printf("Success: %s ID: %d%n", param[1], res.gameID());
+                out.println("Success list games to find ID");
             }
         } catch (Exception e) {
             out.println("Incorrect parameter input");
@@ -171,7 +172,7 @@ public class Client {
         }
         try {
             games = getGames(out);
-            if (games == null) {
+            if (games != null ? games.isEmpty() : false) {
                 out.println("No active games");
                 return;
             }
@@ -205,6 +206,7 @@ public class Client {
                 if (num == i) {
                     return game.gameID();
                 }
+                i++;
             }
         }
         return 0;
@@ -216,15 +218,20 @@ public class Client {
             return;
         }
         try {
-            int gameID = getGameID(out, Integer.parseInt(param[1]));
+            int id = Integer.parseInt(param[1]);
+            int gameID = getGameID(out, id);
+            if (games.isEmpty()) {
+                out.print("There are not active games. Please create a game to start.");
+            }
             if (gameID == 0) {
-                out.println("No current games to join");
+                out.printf("No existing game for ID: %d%n", id);
                 return;
             }
             HttpResponse<String> result = serverFacade.joinGame(authToken, gameID, param[2].toUpperCase());
             gameSwitch(out, result);
             if (result.statusCode() == 200) {
-                JoinGameResult res = (JoinGameResult) JsonSerialization.fromJson(result.body(), JoinGameResult.class);
+                String color = param[2].toUpperCase();
+                displayGame(id, color);
             }
         } catch (Exception e) {
             out.println("Incorrect parameter input");
@@ -236,12 +243,14 @@ public class Client {
             out.println("Incorrect number of parameters: please enter <ID>");
             return;
         }
+        int id = Integer.parseInt(param[1]);
+        displayGame(id, ChessUI.WHITE);
+    }
+
+    private static void displayGame(int index, String color) {
         for (GameRecord game : games) {
-            if (JsonSerialization.isInt(param[1])) {
-                int id = Integer.parseInt(param[1]);
-                if (game.gameID().equals(id)) {
-                    ChessUI.run(game.game(), ChessUI.WHITE);
-                }
+            if (game.gameID().equals(index)) {
+                ChessUI.run(game.game(), color);
             }
         }
     }

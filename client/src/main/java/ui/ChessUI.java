@@ -91,10 +91,10 @@ public class ChessUI {
         for (int squareRow = 0; squareRow < SQUARE_SIZE_IN_PADDED_CHARS; ++squareRow) {
             for (int boardCol = 0; boardCol < BOARD_SIZE_IN_SQUARES; ++boardCol) {
                 if (isEven(count)) {
-                    out.print(SET_BG_COLOR_LIGHT_GREY);
+                    out.print(SET_BG_COLOR_DARK_GREEN);
                     out.print(SET_TEXT_COLOR_WHITE);
                 } else {
-                    out.print(SET_BG_COLOR_DARK_GREEN);
+                    out.print(SET_BG_COLOR_LIGHT_GREY);
                 }
 
                 if (squareRow == SQUARE_SIZE_IN_PADDED_CHARS / 2) {
