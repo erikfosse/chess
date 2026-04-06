@@ -57,8 +57,8 @@ public class ServerFacade {
         return server.doPost(host, port, "/game", jsonString, authToken);
     }
 
-    public HttpResponse<String> clear() throws URISyntaxException, IOException, InterruptedException {
-        return server.doDelete(host, port, "/db", "");
+    public void clear() throws URISyntaxException, IOException, InterruptedException {
+        server.doDelete(host, port, "/db", "");
     }
 
 
