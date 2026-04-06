@@ -61,14 +61,16 @@ public class SQLGameDao implements GameInterface {
                     String white = "";
                     String black = "";
                     String gameName = "";
+                    boolean resigned = false;
                     while (rs.next()) {
                         white = rs.getString("whiteUserName");
                         black = rs.getString("blackUserName");
                         gameName = rs.getString("gameName");
                         json = rs.getString("jsonGame");
+                        resigned = rs.getBoolean("resigned");
                     }
                     ChessGame game = new Gson().fromJson(json, ChessGame.class);
-                    return new GameRecord(gameID, white, black, gameName, game);
+                    return new GameRecord(gameID, white, black, gameName, game, resigned);
                 }
             }
         } catch (SQLException e) {
@@ -91,14 +93,16 @@ public class SQLGameDao implements GameInterface {
                     String white = "";
                     String black = "";
                     String gameName = "";
+                    boolean resigned = false;
                     while (rs.next()) {
                         gameID = rs.getInt("gameID");
                         white = rs.getString("whiteUserName");
                         black = rs.getString("blackUserName");
                         gameName = rs.getString("gameName");
                         json = rs.getString("jsonGame");
+                        resigned = rs.getBoolean("resigned");
                         ChessGame game = new Gson().fromJson(json, ChessGame.class);
-                        allGames.add(new GameRecord(gameID, white, black, gameName, game));
+                        allGames.add(new GameRecord(gameID, white, black, gameName, game, resigned));
                     }
                 } return allGames;
             }
@@ -127,6 +131,19 @@ public class SQLGameDao implements GameInterface {
                     "INSERT INTO usergamerelation (userID, gameID) VALUES (?, ?)"
             )) {
                 ps.setInt(1, userID);
+                ps.setInt(2, gameID);
+                ps.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new SQLConnException();
+        }
+    }
+
+    public void resignGame(Integer gameID) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String sql = "UPDATE gamedata SET resigned=? WHERE gameID=?";
+            try (var ps = conn.prepareStatement(sql)) {
+                ps.setString(1, "TRUE");
                 ps.setInt(2, gameID);
                 ps.executeUpdate();
             }

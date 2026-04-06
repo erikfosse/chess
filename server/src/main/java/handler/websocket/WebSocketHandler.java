@@ -1,11 +1,14 @@
 package handler.websocket;
 
 import chess.ChessGame;
+import dataaccess.sql.SQLAuthDao;
+import dataaccess.sql.SQLGameDao;
 import io.javalin.websocket.*;
 import model.AuthRecord;
 import model.GameRecord;
 import model.JsonSerialization;
 import model.exception.AlreadyTakenException;
+import model.exception.DataAccessException;
 import org.eclipse.jetty.websocket.api.Session;
 import service.UserService;
 import websocket.commands.UserGameCommand;
@@ -15,10 +18,13 @@ import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
     private final ConnectionManager connections = new ConnectionManager();
+    private SQLGameDao gameDao;
+    private SQLAuthDao authDao;
 
     @Override
     public void handleConnect(WsConnectContext ctx) {
@@ -29,6 +35,8 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     @Override
     public void handleMessage(WsMessageContext ctx) {
         try {
+            gameDao = new SQLGameDao();
+            authDao = new SQLAuthDao();
             UserGameCommand command = (UserGameCommand) JsonSerialization.fromJson(ctx.message(), UserGameCommand.class);
             switch (command.getCommandType()) {
                 case CONNECT -> connect(command.getAuthToken(), command.getGameID(), ctx.session);
@@ -72,39 +80,68 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         connections.broadcast(session, notification);
     }
 
-    private String getUserName(String authToken) {
-        AuthRecord user = db.AuthData.getAuth(authToken);
-        return user.username();
+    private void resign(String authToken, int gameID, Session session) throws IOException {
+        String playerName = getUserName(authToken);
     }
 
-    private String getUserColor(String authToken, int gameID) {
-        String playerName = getUserName(authToken);
-        GameRecord game = db.GameData.getGame(gameID);
-        if (game.blackUsername().equals(playerName)) {
-            return "BLACK";
-        } else {
-            return "WHITE";
+    private String getUserName(String authToken) throws IOException {
+        try {
+            AuthRecord user = authDao.getAuth(authToken);
+            return user.username();
+        } catch (DataAccessException e) {
+            throw new IOException();
         }
     }
 
+    private String getUserColor(String authToken, int gameID) throws IOException {
+        String playerName = getUserName(authToken);
+        try {
+            GameRecord game = gameDao.getGame(gameID);
+            if (game.blackUsername().equals(playerName)) {
+                return "BLACK";
+            } else {
+                return "WHITE";
+            }
+        } catch (DataAccessException e) {
+            throw new IOException();
+        }
+
+    }
+
     private void loadGame(Session session, int gameID) throws IOException {
-        ChessGame game = db.GameData.getGame(gameID).game();
-        var loadGameMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
-        connections.broadcast(session, loadGameMessage);
+        try {
+            ChessGame game = gameDao.getGame(gameID).game();
+            var loadGameMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
+            connections.broadcast(session, loadGameMessage);
+        } catch (DataAccessException e) {
+            throw new IOException();
+        }
     }
 
     private void removePlayerFromGame(String authToken, int gameID) throws IOException, AlreadyTakenException {
-        String color = getUserColor(authToken, gameID);
-        GameRecord game = db.GameData.getGame(gameID);
-        db.GameData.editGame(gameID, color, null);
+        try {
+            String color = getUserColor(authToken, gameID);
+            GameRecord game = gameDao.getGame(gameID);
+            gameDao.editGame(gameID, color, null);
+        } catch (DataAccessException e) {
+            throw new IOException();
+        }
     }
 
-    private boolean isValidAuth(String authToken) {
-        return db.AuthData.getAuth(authToken) != null;
+    private boolean isValidAuth(String authToken) throws IOException {
+        try {
+            return authDao.getAuth(authToken) != null;
+        } catch (DataAccessException e) {
+            throw new IOException();
+        }
     }
 
-    private boolean isValidGameID(int gameID) {
-        return db.GameData.getGame(gameID) != null;
+    private boolean isValidGameID(int gameID) throws IOException {
+        try {
+            return gameDao.getGame(gameID) != null;
+        } catch (DataAccessException e) {
+            throw new IOException();
+        }
     }
 
 }

@@ -83,6 +83,7 @@ public class DatabaseManager {
                            blackUserName VARCHAR(255),
                            gameName VARCHAR(255) NOT NULL,
                            jsonGame TEXT NOT NULL,
+                           resigned BOOLEAN,
                            PRIMARY KEY (gameID)
                            )
                        """,
