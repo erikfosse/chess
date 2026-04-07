@@ -1,11 +1,12 @@
 //import serverfacade.ServerConnector;
 
-import chess.ChessGame;
 import model.GameRecord;
 import model.JsonSerialization;
 import model.result.*;
 import serverfacade.ServerFacade;
 import ui.ChessUI;
+import client.UserState;
+import static client.UserState.*;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -18,11 +19,7 @@ public class Client {
 
     private static String authToken;
     private static ArrayList<GameRecord> games;
-    private static int status;
-    private static final int LOGGED_OUT = 0;
-    private static final int LOGGED_IN = 1;
-    private static final int IN_GAME = 2;
-    private static final int QUIT = -1;
+    private static UserState status;
     private static ServerFacade serverFacade;
 
     public static void main(String[] args) {
