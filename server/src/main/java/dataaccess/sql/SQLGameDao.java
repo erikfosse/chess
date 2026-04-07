@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import dataaccess.DatabaseManager;
 import dataaccess.interfaces.GameInterface;
 import model.GameRecord;
+import model.JsonSerialization;
 import model.exception.DataAccessException;
 import model.exception.SQLConnException;
 
@@ -135,6 +136,20 @@ public class SQLGameDao implements GameInterface {
                 ps.executeUpdate();
             }
         } catch (SQLException e) {
+            throw new SQLConnException();
+        }
+    }
+
+    public void updateGame(Integer gameID, ChessGame game) throws SQLConnException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String sql = "UPDATE gamedata SET jsonGame=? WHERE gameID=?";
+            try (var ps = conn.prepareStatement(sql)) {
+                String jsonGame = JsonSerialization.toJson(game);
+                ps.setString(1, jsonGame);
+                ps.setInt(2, gameID);
+                ps.executeUpdate();
+            }
+        } catch (SQLException | DataAccessException e) {
             throw new SQLConnException();
         }
     }

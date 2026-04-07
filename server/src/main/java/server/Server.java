@@ -2,6 +2,7 @@ package server;
 
 import dataaccess.DatabaseManager;
 import handler.*;
+import handler.websocket.WebSocketHandler;
 import io.javalin.Javalin;
 import model.exception.DataAccessException;
 
@@ -19,16 +20,21 @@ public class Server {
     }
 
     public Server() {
-//        var piece = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
-//        System.out.println("♕ 240 Chess Server: " + piece);
-        javalin = Javalin.create(config -> config.staticFiles.add("web"));
-        javalin.post("/user", new RegisterHandler());
-        javalin.post("/session", new LoginHandler());
-        javalin.delete("/session", new LogoutHandler());
-        javalin.get("/game", new ListGamesHandler());
-        javalin.post("/game", new CreateGameHandler());
-        javalin.put("/game", new JoinGameHandler());
-        javalin.delete("/db", new ClearApplicationHandler());
+        WebSocketHandler webSocketHandler = new WebSocketHandler();
+
+        javalin = Javalin.create(config -> config.staticFiles.add("web"))
+                .post("/user", new RegisterHandler())
+                .post("/session", new LoginHandler())
+                .delete("/session", new LogoutHandler())
+                .get("/game", new ListGamesHandler())
+                .post("/game", new CreateGameHandler())
+                .put("/game", new JoinGameHandler())
+                .delete("/db", new ClearApplicationHandler())
+                .ws("/ws", ws -> {
+                   ws.onConnect(webSocketHandler);
+                   ws.onMessage(webSocketHandler);
+                   ws.onClose(webSocketHandler);
+                });
     }
 
     public int run(int desiredPort) {

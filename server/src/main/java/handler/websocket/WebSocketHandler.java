@@ -1,6 +1,9 @@
 package handler.websocket;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import dataaccess.sql.SQLAuthDao;
 import dataaccess.sql.SQLGameDao;
 import io.javalin.websocket.*;
@@ -11,6 +14,7 @@ import model.exception.AlreadyTakenException;
 import model.exception.DataAccessException;
 import org.eclipse.jetty.websocket.api.Session;
 import service.UserService;
+import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
@@ -19,6 +23,9 @@ import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
@@ -37,12 +44,16 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         try {
             gameDao = new SQLGameDao();
             authDao = new SQLAuthDao();
-            UserGameCommand command = (UserGameCommand) JsonSerialization.fromJson(ctx.message(), UserGameCommand.class);
+            UserGameCommand command;
+            command = (UserGameCommand) JsonSerialization.fromJson(ctx.message(), UserGameCommand.class);
             switch (command.getCommandType()) {
                 case CONNECT -> connect(command.getAuthToken(), command.getGameID(), ctx.session);
-                case MAKE_MOVE ->
+                case MAKE_MOVE -> {
+                    var command_1 = (MakeMoveCommand) JsonSerialization.fromJson(ctx.message(), MakeMoveCommand.class);
+                    makeMove(command.getAuthToken(), command.getGameID(), command_1.getMove(), ctx.session);
+                }
                 case LEAVE -> leave(command.getAuthToken(), command.getGameID(), ctx.session);
-                case RESIGN ->
+                case RESIGN -> resign(command.getAuthToken(), command.getGameID());
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -80,8 +91,68 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         connections.broadcast(session, notification);
     }
 
-    private void resign(String authToken, int gameID, Session session) throws IOException {
-        String playerName = getUserName(authToken);
+    private void resign(String authToken, int gameID) throws IOException {
+        try {
+            var playerName = getUserName(authToken);
+            gameDao.resignGame(gameID);
+            var message = String.format("%s has resigned the game", playerName);
+            var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+            connections.broadcast(null, notification);
+        } catch (Exception e) {
+            throw new IOException();
+        }
+    }
+
+    private void makeMove(String authToken, int gameID, ChessMove move, Session session) throws IOException {
+        try {
+            ChessGame game = gameDao.getGame(gameID).game();
+            var playerName = getUserName(authToken);
+            ChessPosition pos = move.getStartPosition();
+            if (game.validMoves(pos).contains(move)) {
+                game.makeMove(move);
+                gameDao.updateGame(gameID, game);
+                loadGame(null, gameID);
+                var message = makeMoveMessage(game, move, playerName);
+                var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+                connections.broadcast(session, notification);
+
+                var checkMessage = checkGameMessage(game);
+                if (!checkMessage.isEmpty()) {
+                    notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, checkMessage);
+                    connections.broadcast(null, notification);
+                }
+            }
+        } catch (Exception e) {
+            throw new IOException();
+        }
+    }
+
+    private String checkGameMessage(ChessGame game) {
+        List<ChessGame.TeamColor> colors = List.of(ChessGame.TeamColor.BLACK, ChessGame.TeamColor.WHITE);
+        String message = "";
+        for (ChessGame.TeamColor color : colors) {
+            if (game.isInCheck(color)) {
+                message = String.format("%s is in check", color);
+            } if (game.isInCheckmate(color)) {
+                message = String.format("%s is in checkmate", color);
+            } if (game.isInStalemate(color)) {
+                message = String.format("%s is in stalemate", color);
+            }
+        }
+        return message;
+    }
+
+    private String makeMoveMessage(ChessGame game, ChessMove move, String playerName) {
+        ChessPosition startPos = move.getStartPosition();
+        ChessPosition endPos = move.getEndPosition();
+        ChessPiece piece = game.getBoard().getPiece(startPos);
+        HashMap<Integer, String> letters = new HashMap<>(Map.of(
+                1, "A", 2, "B", 3, "C", 4, "D",
+                5, "E", 6, "F", 7, "G", 8, "H"
+        ));
+        var start = letters.get(startPos.getColumn()) + startPos.getRow();
+        var end = letters.get(endPos.getColumn()) + endPos.getRow();
+        return String.format("%s moved %s from %s to %s", playerName, piece, start, end);
     }
 
     private String getUserName(String authToken) throws IOException {
