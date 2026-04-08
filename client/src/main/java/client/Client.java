@@ -1,6 +1,9 @@
 package client;//import serverfacade.ServerConnector;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import model.GameRecord;
 import model.JsonSerialization;
 import model.exception.ResponseException;
@@ -15,6 +18,7 @@ import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 
+import static chess.ChessPiece.PieceType.*;
 import static client.UserState.*;
 import static ui.EscapeSequences.RESET_TEXT_COLOR;
 import static ui.EscapeSequences.SET_TEXT_COLOR_RED;
@@ -24,6 +28,8 @@ import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Client implements NotificationHandler {
@@ -35,6 +41,14 @@ public class Client implements NotificationHandler {
     private static WebSocketFacade ws;
     private static int currentGameID;
     private static String currentGameColor;
+    private static final Map<String, Integer> letters = new HashMap<>(Map.of(
+            "A", 1, "B", 2, "C", 3, "D", 4,
+            "E", 5, "F", 6, "G", 7, "H", 8
+    ));
+    private static final Map<String, ChessPiece.PieceType> pieces = new HashMap<>(Map.of(
+            "KING", KING, "QUEEN", QUEEN, "ROOK", ROOK, "BISHOP", BISHOP,
+            "KNIGHT", KNIGHT, "PAWN", PAWN
+    ));
 
     public Client(String host, int port) throws ResponseException {
         serverFacade = new ServerFacade(host, port);
@@ -68,6 +82,7 @@ public class Client implements NotificationHandler {
                 case LOGGED_OUT -> preLoginUI(out, scanner);
                 case LOGGED_IN -> postLoginUI(out, scanner);
                 case IN_GAME -> gameUI(out, scanner);
+                case OBSERVER -> observerUI(out, scanner);
                 case QUIT -> {
                     return;
                 }
@@ -344,7 +359,7 @@ public class Client implements NotificationHandler {
             switch (commands[0]) {
                 case "redraw" -> redrawBoard(out, commands);
                 case "leave" -> leaveGame(out, commands);
-//                case "move" -> ;
+                case "move" -> makeMove(out, commands);
                 case "resign" -> resignGame(out, commands);
 //                case "highlight" -> ;
                 case "help" -> gameHelp(out);
@@ -387,6 +402,30 @@ public class Client implements NotificationHandler {
         status = LOGGED_IN;
     }
 
+    private static void makeMove(PrintStream out, String[] param) {
+        if (param.length == 3 || param.length == 4) {
+            try {
+                var start = new ChessPosition(letters.get(param[1].charAt(0)), Integer.parseInt(String.valueOf(param[1].charAt(1))));
+                var end = new ChessPosition(letters.get(param[2].charAt(0)), Integer.parseInt(String.valueOf(param[2].charAt(1))));
+                ChessMove move = null;
+                if (param.length==4) {
+                    var piece = pieces.get(param[3].toUpperCase());
+                    move = new ChessMove(start, end, piece);
+                } else {
+                    move = new ChessMove(start, end, null);
+                }
+                ws.makeMove(UserGameCommand.CommandType.MAKE_MOVE, authToken, currentGameID, move);
+            } catch (ResponseException e) {
+                out.println("Error: could not connect to the server.");
+            }
+        } else {
+            out.println("Incorrect number of parameters: <Start> <Finish> <Promotion>");
+        }
+
+    }
+
+
+
     private static void gameHelp(PrintStream out) {
         out.println("""
                 redraw - the chess board
@@ -394,6 +433,7 @@ public class Client implements NotificationHandler {
                 move <Start> <Finish> <Promotion> - moves a piece at the start coordinate
                     - to the end position. If a pawn is being promoted, include its promotion
                     - piece.
+                    - Ex: c1 d5 queen
                 resign - admit defeat and end the game
                 highlight - highlights all possible moves
                 help - with possible commands
