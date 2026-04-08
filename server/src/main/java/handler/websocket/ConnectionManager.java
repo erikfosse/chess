@@ -8,19 +8,26 @@ import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionManager {
-    public final ConcurrentHashMap<Session, Session> connections = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<Integer, ConcurrentHashMap<Session, Session>> connections = new ConcurrentHashMap<>();
 
-    public void add(Session session) {
-        connections.put(session,session);
+    public void add(Integer gameID, Session session) {
+        if (connections.get(gameID)==null) {
+            var sessionMap = new ConcurrentHashMap<Session, Session>();
+            sessionMap.put(session, session);
+            connections.put(gameID, sessionMap);
+        } else {
+            connections.get(gameID).put(session, session);
+        }
     }
 
-    public void remove(Session session) {
-        connections.remove(session);
+    public void remove(Integer gameID, Session session) {
+        connections.get(gameID).remove(session);
     }
 
-    public void exclusiveBroadcast(Session excludeSession, ServerMessage message) throws IOException {
+    public void exclusiveBroadcast(Session excludeSession, ServerMessage message, int gameID) throws IOException {
         String msg = JsonSerialization.toJson(message);
-        for (Session c : connections.values()) {
+        var sessions = connections.get(gameID);
+        for (Session c : sessions.values()) {
             if (c.isOpen()) {
                 if (!c.equals(excludeSession)) {
                     c.getRemote().sendString(msg);
@@ -29,9 +36,10 @@ public class ConnectionManager {
         }
     }
 
-    public void inclusiveBroadcast(Session excludeSession, ServerMessage message) throws IOException {
+    public void inclusiveBroadcast(Session excludeSession, ServerMessage message, int gameID) throws IOException {
         String msg = JsonSerialization.toJson(message);
-        for (Session c : connections.values()) {
+        var sessions = connections.get(gameID);
+        for (Session c : sessions.values()) {
             if (c.isOpen()) {
                 if (c.equals(excludeSession)) {
                     c.getRemote().sendString(msg);

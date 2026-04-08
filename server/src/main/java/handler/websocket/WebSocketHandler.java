@@ -64,19 +64,19 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void connect(String authToken, int gameID, Session session) throws Exception {
-        connections.add(session);
+        connections.add(gameID, session);
         if (isValidAuth(authToken) && isValidGameID(gameID)) {
             String playerName = getUserName(authToken);
             String color = colorToString(getUserColor(authToken, gameID));
             var message = String.format("%s has joined as %s", playerName, color);
             var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
             inclusiveLoadGame(session, gameID);
-            connections.exclusiveBroadcast(session, notification);
+            connections.exclusiveBroadcast(session, notification, gameID);
         }
         else {
             var message = "Error: Invalid credentials";
             var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, message);
-            connections.inclusiveBroadcast(session, error);
+            connections.inclusiveBroadcast(session, error, gameID);
         }
     }
 
@@ -85,19 +85,19 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         removePlayerFromGame(authToken, gameID);
         var message = String.format("%s left the game", playerName);
         var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-        connections.remove(session);
-        connections.exclusiveBroadcast(session, notification);
+        connections.remove(gameID, session);
+        connections.exclusiveBroadcast(session, notification, gameID);
     }
 
     private void resign(String authToken, int gameID, Session session) throws IOException {
         try {
             GameRecord record = gameDao.getGame(gameID);
             if (record.resigned()) {
-                makeErrorMessage("Error: game already resigned", session);
+                makeErrorMessage("Error: game already resigned", session, gameID);
                 return;
             }
             if (isObserver(authToken, gameID)) {
-                makeErrorMessage("Error: observers cannot resign", session);
+                makeErrorMessage("Error: observers cannot resign", session, gameID);
                 return;
             }
 
@@ -105,7 +105,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             gameDao.resignGame(gameID);
             var message = String.format("%s has resigned the game", playerName);
             var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-            connections.exclusiveBroadcast(null, notification);
+            connections.exclusiveBroadcast(null, notification, gameID);
         } catch (Exception e) {
             throw new IOException();
         }
@@ -117,21 +117,21 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             var game = record.game();
 
             if (!isValidAuth(authToken)) {
-                makeErrorMessage("Error: Unathorized", session);
+                makeErrorMessage("Error: Unathorized", session, gameID);
                 return;
             }
             if (record.resigned()) {
-                makeErrorMessage("Error: gave over no moves possible", session);
+                makeErrorMessage("Error: gave over no moves possible", session, gameID);
                 return;
             }
             if (isObserver(authToken, gameID)) {
-                makeErrorMessage("Error: observers cannot resign", session);
+                makeErrorMessage("Error: observers cannot resign", session, gameID);
                 return;
             }
 
             var teamColor = getUserColor(authToken, gameID);
             if (!game.getTeamTurn().equals(teamColor)) {
-                makeErrorMessage("Error: not your turn. Wait for opponent to play", session);
+                makeErrorMessage("Error: not your turn. Wait for opponent to play", session, gameID);
                 return;
             }
 
@@ -143,15 +143,15 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 exclusiveLoadGame(null, gameID);
                 var message = makeMoveMessage(game, move, playerName);
                 var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-                connections.exclusiveBroadcast(session, notification);
+                connections.exclusiveBroadcast(session, notification, gameID);
 
                 var checkMessage = checkGameMessage(game);
                 if (!checkMessage.isEmpty()) {
                     notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, checkMessage);
-                    connections.exclusiveBroadcast(null, notification);
+                    connections.exclusiveBroadcast(null, notification, gameID);
                 }
             } else {
-                makeErrorMessage("Error: no possible moves", session);
+                makeErrorMessage("Error: no possible moves", session, gameID);
             }
         } catch (Exception e) {
             throw new IOException();
@@ -194,9 +194,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         return String.format("%s moved %s from %s to %s", playerName, piece, start, end);
     }
 
-    private void makeErrorMessage(String message, Session session) throws IOException {
+    private void makeErrorMessage(String message, Session session, int gameID) throws IOException {
         var errorMessage = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, message);
-        connections.inclusiveBroadcast(session, errorMessage);
+        connections.inclusiveBroadcast(session, errorMessage, gameID);
     }
 
     private String getUserName(String authToken) throws IOException {
@@ -234,7 +234,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         try {
             ChessGame game = gameDao.getGame(gameID).game();
             var loadGameMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
-            connections.exclusiveBroadcast(session, loadGameMessage);
+            connections.exclusiveBroadcast(session, loadGameMessage, gameID);
         } catch (DataAccessException e) {
             throw new IOException();
         }
@@ -244,7 +244,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         try {
             ChessGame game = gameDao.getGame(gameID).game();
             var loadGameMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
-            connections.inclusiveBroadcast(session, loadGameMessage);
+            connections.inclusiveBroadcast(session, loadGameMessage, gameID);
         } catch (DataAccessException e) {
             throw new IOException();
         }
