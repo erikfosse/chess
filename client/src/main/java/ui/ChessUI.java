@@ -73,7 +73,7 @@ public class ChessUI {
         setBlack(out);
     }
 
-    private static void drawChessBoard(PrintStream out, ChessGame game, String color) {
+    private static void drawChessBoard(PrintStream out, ChessGame game,  String color) {
         if (color.equals("BLACK")) {
             for (int boardRow = 0; boardRow < BOARD_SIZE_IN_SQUARES; ++boardRow) {
                 drawRowOfSquares(out, game, boardRow);

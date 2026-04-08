@@ -1,5 +1,6 @@
 package handler.websocket;
 
+import model.JsonSerialization;
 import org.eclipse.jetty.websocket.api.Session;
 import websocket.messages.ServerMessage;
 
@@ -17,11 +18,22 @@ public class ConnectionManager {
         connections.remove(session);
     }
 
-    public void broadcast(Session excludeSession, ServerMessage message) throws IOException {
-        String msg = message.toString();
+    public void exclusiveBroadcast(Session excludeSession, ServerMessage message) throws IOException {
+        String msg = JsonSerialization.toJson(message);
         for (Session c : connections.values()) {
             if (c.isOpen()) {
                 if (!c.equals(excludeSession)) {
+                    c.getRemote().sendString(msg);
+                }
+            }
+        }
+    }
+
+    public void inclusiveBroadcast(Session excludeSession, ServerMessage message) throws IOException {
+        String msg = JsonSerialization.toJson(message);
+        for (Session c : connections.values()) {
+            if (c.isOpen()) {
+                if (c.equals(excludeSession)) {
                     c.getRemote().sendString(msg);
                 }
             }

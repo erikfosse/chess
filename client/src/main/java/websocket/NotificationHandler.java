@@ -5,16 +5,8 @@ import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 
-public class NotificationHandler {
-    void notify(NotificationMessage notification) {
-        System.out.println(notification.getNotificationMessage());
-    }
-
-    void error(ErrorMessage errorMessage) {
-        System.out.println(errorMessage.getErrorMessage());
-    }
-
-    ChessGame loadGame(LoadGameMessage loadGameMessage) {
-        return loadGameMessage.getGame();
-    }
+public interface NotificationHandler {
+    void notify(NotificationMessage notification);
+    void error(ErrorMessage errorMessage);
+    void loadGame(LoadGameMessage loadGameMessage);
 }

@@ -21,7 +21,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.1</version>
                 <configuration>
-                    <mainClass>Client</mainClass>
+                    <mainClass>client.Client</mainClass>
                 </configuration>
             </plugin>
             <plugin>
@@ -38,7 +38,7 @@
                             <archive>
                                 <manifest>
                                     <mainClass>
-                                        Client
+                                        client.Client
                                     </mainClass>
                                 </manifest>
                             </archive>

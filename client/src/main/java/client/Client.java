@@ -1,16 +1,23 @@
-//import serverfacade.ServerConnector;
+package client;//import serverfacade.ServerConnector;
 
+import chess.ChessGame;
 import model.GameRecord;
 import model.JsonSerialization;
 import model.exception.ResponseException;
 import model.result.*;
 import serverfacade.ServerFacade;
 import ui.ChessUI;
-import client.UserState;
+import ui.EscapeSequences.*;
 import websocket.NotificationHandler;
 import websocket.WebSocketFacade;
+import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
 
 import static client.UserState.*;
+import static ui.EscapeSequences.RESET_TEXT_COLOR;
+import static ui.EscapeSequences.SET_TEXT_COLOR_RED;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -19,13 +26,20 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class Client {
+public class Client implements NotificationHandler {
 
     private static String authToken;
     private static ArrayList<GameRecord> games;
     private static UserState status;
     private static ServerFacade serverFacade;
     private static WebSocketFacade ws;
+    private static int currentGameID;
+    private static String currentGameColor;
+
+    public Client(String host, int port) throws ResponseException {
+        serverFacade = new ServerFacade(host, port);
+        ws = new WebSocketFacade(host, port, this);
+    }
 
     public static void main(String[] args) {
         assert args.length == 2;
@@ -35,18 +49,15 @@ public class Client {
         } catch (NumberFormatException e) {
             System.out.println("Port number should be an integer");
         }
-        run(args[0], port);
+        try {
+            Client client = new Client(args[0], port);
+            client.run();
+        } catch (ResponseException e) {
+            System.out.println("Error: connection to server could not be established.");
+        }
     }
 
-    public static void run(String host, int port) {
-        serverFacade = new ServerFacade(host, port);
-        String url = "http://" + host + ":" + port;
-        try {
-            ws = new WebSocketFacade(url, new NotificationHandler());
-        } catch (ResponseException e) {
-            System.out.println("Error: could not connect to the server.");
-        }
-
+    public static void run() {
         Scanner scanner = new Scanner(System.in);
         PrintStream out = System.out;
 
@@ -64,8 +75,25 @@ public class Client {
         }
     }
 
+    public void notify(NotificationMessage notification) {
+        System.out.println("\n[NOTIFICATION]" + notification.getNotificationMessage());
+    }
+
+    public void error(ErrorMessage errorMessage) {
+        System.out.println(SET_TEXT_COLOR_RED + errorMessage.getErrorMessage());
+        System.out.print(RESET_TEXT_COLOR);
+    }
+
+    public void loadGame(LoadGameMessage loadGameMessage) {
+        var record = games.get(currentGameID);
+        var updateRecord = new GameRecord(record.gameID(), record.whiteUsername(),
+                record.blackUsername(), record.gameName(),
+                loadGameMessage.getGame(), record.resigned());
+        games.add(currentGameID, updateRecord);
+        displayGame(currentGameID, currentGameColor);
+    }
+
     private static void preLoginUI(PrintStream out, Scanner scanner) {
-        outer:
         if (scanner.hasNext()) {
             String[] commands = getLine(scanner);
             switch (commands[0]) {
@@ -181,7 +209,7 @@ public class Client {
         }
         try {
             games = getGames(out);
-            if (games != null ? games.isEmpty() : false) {
+            if (games != null && games.isEmpty()) {
                 out.println("No active games");
                 return;
             }
@@ -240,7 +268,11 @@ public class Client {
             gameSwitch(out, result);
             if (result.statusCode() == 200) {
                 String color = param[2].toUpperCase();
+                currentGameColor = color;
+                currentGameID = id;
+                ws.connect(UserGameCommand.CommandType.CONNECT, authToken, id);
                 displayGame(id, color);
+                status = IN_GAME;
             }
         } catch (Exception e) {
             out.println("Incorrect parameter input");
@@ -266,7 +298,7 @@ public class Client {
 
     private static void logoutGame(PrintStream out, String[] param) {
         if (param.length != 1) {
-            out.println("No parameters are needed for list");
+            out.println("No parameters are needed for logout");
             return;
         }
         try {
@@ -306,19 +338,49 @@ public class Client {
                 out.println("Error");
             }
             switch (commands[0]) {
-                case "redraw" -> ;
-                case "leave" -> ;
-                case "move" -> ;
-                case "resign" -> ;
-                case "highlight" -> ;
+                case "redraw" -> redrawBoard(out, commands);
+                case "leave" -> leaveGame(out, commands);
+//                case "move" -> ;
+                case "resign" -> resignGame(out, commands);
+//                case "highlight" -> ;
                 case "help" -> gameHelp(out);
                 default -> System.out.println("Unrecognized Command");
             }
         }
     }
 
-    private static void redrawBoard(PrintStream out) {
+    private static void redrawBoard(PrintStream out, String[] param) {
+        if (param.length != 1) {
+            out.println("No parameters are needed for redraw");
+            return;
+        }
+        displayGame(currentGameID, currentGameColor);
+    }
 
+    private static void leaveGame(PrintStream out, String[] param) {
+        if (param.length != 1) {
+            out.println("No parameters are needed for leave");
+            return;
+        }
+        try {
+            ws.leave(UserGameCommand.CommandType.LEAVE, authToken, currentGameID);
+        } catch (ResponseException e) {
+            out.println("Error: could not connect to the server.");
+        }
+        status = LOGGED_IN;
+    }
+
+    private static void resignGame(PrintStream out, String[] param) {
+        if (param.length != 1) {
+            out.println("No parameters are needed for resign");
+            return;
+        }
+        try {
+            ws.resign(UserGameCommand.CommandType.RESIGN, authToken, currentGameID);
+        } catch (ResponseException e) {
+            out.println("Error: could not connect to the server.");
+        }
+        status = LOGGED_IN;
     }
 
     private static void gameHelp(PrintStream out) {
@@ -339,7 +401,7 @@ public class Client {
             case 200 -> out.print("");
             case 400 -> out.println("Incorrect input");
             case 401 -> out.println("Unauthorized to fulfill this request");
-            case 403 -> out.println("Username/Password already taken. Please select another and try again");
+            case 403 -> out.println("Already taken");
             default -> out.println("An Error has occurred");
         }
     }

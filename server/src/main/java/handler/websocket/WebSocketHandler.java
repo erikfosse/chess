@@ -13,7 +13,6 @@ import model.JsonSerialization;
 import model.exception.AlreadyTakenException;
 import model.exception.DataAccessException;
 import org.eclipse.jetty.websocket.api.Session;
-import service.UserService;
 import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
@@ -22,7 +21,6 @@ import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,18 +65,18 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void connect(String authToken, int gameID, Session session) throws Exception {
         connections.add(session);
-        loadGame(session, gameID);
+        inclusiveLoadGame(session, gameID);
         if (isValidAuth(authToken) && isValidGameID(gameID)) {
             String playerName = getUserName(authToken);
             String color = getUserColor(authToken, gameID);
             var message = String.format("%s has joined as %s", playerName, color);
             var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-            connections.broadcast(session, notification);
+            connections.exclusiveBroadcast(session, notification);
         }
         else {
             var message = "Invalid authtoken or gameID";
             var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, message);
-            connections.broadcast(session, error);
+            connections.exclusiveBroadcast(session, error);
         }
     }
 
@@ -88,7 +86,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         var message = String.format("%s left the game", playerName);
         var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
         connections.remove(session);
-        connections.broadcast(session, notification);
+        connections.exclusiveBroadcast(session, notification);
     }
 
     private void resign(String authToken, int gameID) throws IOException {
@@ -97,7 +95,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             gameDao.resignGame(gameID);
             var message = String.format("%s has resigned the game", playerName);
             var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-            connections.broadcast(null, notification);
+            connections.exclusiveBroadcast(null, notification);
         } catch (Exception e) {
             throw new IOException();
         }
@@ -111,15 +109,15 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             if (game.validMoves(pos).contains(move)) {
                 game.makeMove(move);
                 gameDao.updateGame(gameID, game);
-                loadGame(null, gameID);
+                exclusiveLoadGame(null, gameID);
                 var message = makeMoveMessage(game, move, playerName);
                 var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-                connections.broadcast(session, notification);
+                connections.exclusiveBroadcast(session, notification);
 
                 var checkMessage = checkGameMessage(game);
                 if (!checkMessage.isEmpty()) {
                     notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, checkMessage);
-                    connections.broadcast(null, notification);
+                    connections.exclusiveBroadcast(null, notification);
                 }
             }
         } catch (Exception e) {
@@ -168,7 +166,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         String playerName = getUserName(authToken);
         try {
             GameRecord game = gameDao.getGame(gameID);
-            if (game.blackUsername().equals(playerName)) {
+            if (game.blackUsername()!=null && game.blackUsername().equals(playerName)) {
                 return "BLACK";
             } else {
                 return "WHITE";
@@ -179,11 +177,21 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     }
 
-    private void loadGame(Session session, int gameID) throws IOException {
+    private void exclusiveLoadGame(Session session, int gameID) throws IOException {
         try {
             ChessGame game = gameDao.getGame(gameID).game();
             var loadGameMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
-            connections.broadcast(session, loadGameMessage);
+            connections.exclusiveBroadcast(session, loadGameMessage);
+        } catch (DataAccessException e) {
+            throw new IOException();
+        }
+    }
+
+    private void inclusiveLoadGame(Session session, int gameID) throws IOException {
+        try {
+            ChessGame game = gameDao.getGame(gameID).game();
+            var loadGameMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
+            connections.inclusiveBroadcast(session, loadGameMessage);
         } catch (DataAccessException e) {
             throw new IOException();
         }
