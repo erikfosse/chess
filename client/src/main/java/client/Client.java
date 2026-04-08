@@ -76,12 +76,15 @@ public class Client implements NotificationHandler {
     }
 
     public void notify(NotificationMessage notification) {
-        System.out.println("\n[NOTIFICATION]" + notification.getNotificationMessage());
+        System.out.println("[NOTIFICATION] " + notification.getNotificationMessage());
+        printCommandline(System.out);
     }
 
     public void error(ErrorMessage errorMessage) {
-        System.out.println(SET_TEXT_COLOR_RED + errorMessage.getErrorMessage());
+        System.out.println(SET_TEXT_COLOR_RED);
+        System.out.println("[ERROR] " + errorMessage.getErrorMessage());
         System.out.print(RESET_TEXT_COLOR);
+        printCommandline(System.out);
     }
 
     public void loadGame(LoadGameMessage loadGameMessage) {
@@ -91,6 +94,7 @@ public class Client implements NotificationHandler {
                 loadGameMessage.getGame(), record.resigned());
         games.add(currentGameID, updateRecord);
         displayGame(currentGameID, currentGameColor);
+        printCommandline(System.out);
     }
 
     private static void preLoginUI(PrintStream out, Scanner scanner) {
@@ -271,7 +275,6 @@ public class Client implements NotificationHandler {
                 currentGameColor = color;
                 currentGameID = id;
                 ws.connect(UserGameCommand.CommandType.CONNECT, authToken, id);
-                displayGame(id, color);
                 status = IN_GAME;
             }
         } catch (Exception e) {

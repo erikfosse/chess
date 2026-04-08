@@ -18,11 +18,10 @@ import java.util.Collection;
 
 public class SQLGameDao implements GameInterface {
 
-    private Integer numGames;
+    private static Integer numGames = 0;
 
     public SQLGameDao() throws DataAccessException, SQLConnException, SQLException {
         DatabaseManager.createDatabase();
-        this.numGames = 0;
     }
 
     @Override
@@ -80,7 +79,7 @@ public class SQLGameDao implements GameInterface {
     }
 
     @Override
-    public Collection<GameRecord> getAllGames (String username) throws DataAccessException {
+    public Collection<GameRecord> getAllGames () throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
             ArrayList<GameRecord> allGames = new ArrayList<>();
             try (var ps = conn.prepareStatement(

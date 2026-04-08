@@ -19,8 +19,8 @@ public class MemoryGameDao implements GameInterface {
         return GameData.getGame(gameID);
     }
     @Override
-    public Collection<GameRecord> getAllGames (String username) {
-        return GameData.getAllGames(username);
+    public Collection<GameRecord> getAllGames () {
+        return GameData.getAllGames();
     }
     @Override
     public Integer getNumGames() {

@@ -65,18 +65,18 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void connect(String authToken, int gameID, Session session) throws Exception {
         connections.add(session);
-        inclusiveLoadGame(session, gameID);
         if (isValidAuth(authToken) && isValidGameID(gameID)) {
             String playerName = getUserName(authToken);
             String color = getUserColor(authToken, gameID);
             var message = String.format("%s has joined as %s", playerName, color);
             var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+            inclusiveLoadGame(session, gameID);
             connections.exclusiveBroadcast(session, notification);
         }
         else {
-            var message = "Invalid authtoken or gameID";
+            var message = "Error: Invalid gameID";
             var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, message);
-            connections.exclusiveBroadcast(session, error);
+            connections.inclusiveBroadcast(session, error);
         }
     }
 
@@ -215,12 +215,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    private boolean isValidGameID(int gameID) throws IOException {
-        try {
-            return gameDao.getGame(gameID) != null;
-        } catch (DataAccessException e) {
-            throw new IOException();
-        }
+    private boolean isValidGameID(int gameID) throws IOException, DataAccessException {
+        var numGames = gameDao.getAllGames();
+        var res = gameID <= numGames.size() && gameID >= 0;
+        return res;
     }
-
 }

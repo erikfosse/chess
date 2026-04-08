@@ -77,7 +77,7 @@ public class GameService {
             SQLGameDao gameDao = new SQLGameDao();
             var username = auth.username();
 
-            var gamesList = gameDao.getAllGames(username);
+            var gamesList = gameDao.getAllGames();
             if (gamesList == null) {
                 return new ListGamesResult();
             }

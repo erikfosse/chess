@@ -85,7 +85,7 @@ public class SQLGameDaoTest {
         gameDao.addGame("black", game);
         gameDao.addGame("white v. black", game);
         gameDao.addGame("white and black", game);
-        Collection<GameRecord> games = gameDao.getAllGames("thing");
+        Collection<GameRecord> games = gameDao.getAllGames();
         Assertions.assertEquals(games.toArray().length, 4);
     }
 
@@ -98,7 +98,7 @@ public class SQLGameDaoTest {
             gameDao.addGame("white v. black", game);
             gameDao.addGame(null, null);
         } catch (Exception e) {
-            Collection<GameRecord> games = gameDao.getAllGames("thing");
+            Collection<GameRecord> games = gameDao.getAllGames();
             Assertions.assertNotEquals(games.toArray().length, 4);
         }
 

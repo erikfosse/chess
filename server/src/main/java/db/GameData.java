@@ -27,7 +27,7 @@ public class GameData {
         return games.get(gameID);
     }
 
-    public static Collection<GameRecord> getAllGames(String username) {
+    public static Collection<GameRecord> getAllGames() {
         ArrayList<GameRecord> allGames = new ArrayList<>();
         for (Map.Entry<Integer, GameRecord> game : games.entrySet()) {
             allGames.add(game.getValue());

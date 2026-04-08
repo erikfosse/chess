@@ -14,7 +14,7 @@ import java.util.Collection;
 public interface GameInterface {
     public void addGame(String gameName, ChessGame game) throws SQLException, DataAccessException;
     public GameRecord getGame(Integer gameID) throws SQLException, DataAccessException;
-    public Collection<GameRecord> getAllGames(String username) throws SQLException, DataAccessException;
+    public Collection<GameRecord> getAllGames() throws SQLException, DataAccessException;
     public Integer getNumGames();
     public void editGame(Integer gameID, String playerColor, String username)
             throws DataAccessException, SQLException;
