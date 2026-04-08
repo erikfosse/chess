@@ -96,6 +96,10 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 makeErrorMessage("Error: game already resigned", session);
                 return;
             }
+            if (isObserver(authToken, gameID)) {
+                makeErrorMessage("Error: observers cannot resign", session);
+                return;
+            }
 
             var playerName = getUserName(authToken);
             gameDao.resignGame(gameID);
@@ -118,6 +122,10 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             }
             if (record.resigned()) {
                 makeErrorMessage("Error: gave over no moves possible", session);
+                return;
+            }
+            if (isObserver(authToken, gameID)) {
+                makeErrorMessage("Error: observers cannot resign", session);
                 return;
             }
 
@@ -163,6 +171,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             }
         }
         return message;
+    }
+
+    private boolean isObserver(String authToken, int gameID) throws DataAccessException {
+        var user = authDao.getAuth(authToken).username();
+        var gameRecord = gameDao.getGame(gameID);
+        var black = gameRecord.blackUsername();
+        var white = gameRecord.whiteUsername();
+        return !user.equals(black) && !user.equals(white);
     }
 
     private String makeMoveMessage(ChessGame game, ChessMove move, String playerName) {
