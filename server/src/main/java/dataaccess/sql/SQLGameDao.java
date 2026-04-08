@@ -157,7 +157,7 @@ public class SQLGameDao implements GameInterface {
         try (Connection conn = DatabaseManager.getConnection()) {
             String sql = "UPDATE gamedata SET resigned=? WHERE gameID=?";
             try (var ps = conn.prepareStatement(sql)) {
-                ps.setString(1, "TRUE");
+                ps.setInt(1, 1);
                 ps.setInt(2, gameID);
                 ps.executeUpdate();
             }

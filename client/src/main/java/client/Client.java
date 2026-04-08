@@ -289,6 +289,7 @@ public class Client implements NotificationHandler {
         }
         int id = Integer.parseInt(param[1]);
         displayGame(id, ChessUI.WHITE);
+        status = OBSERVER;
     }
 
     private static void displayGame(int index, String color) {
