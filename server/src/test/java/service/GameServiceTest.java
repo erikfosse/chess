@@ -1,13 +1,8 @@
 package service;
 
 import dataaccess.DatabaseManager;
-import dataaccess.sql.SQLAuthDao;
-import model.AuthRecord;
 import model.GameRecord;
 import model.request.GeneralApi;
-import model.UserRecord;
-import model.exception.AlreadyTakenException;
-import model.exception.BadRequestException;
 import model.exception.DataAccessException;
 import model.request.*;
 import model.result.*;

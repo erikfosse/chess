@@ -2,10 +2,14 @@
 
 import model.GameRecord;
 import model.JsonSerialization;
+import model.exception.ResponseException;
 import model.result.*;
 import serverfacade.ServerFacade;
 import ui.ChessUI;
 import client.UserState;
+import websocket.NotificationHandler;
+import websocket.WebSocketFacade;
+
 import static client.UserState.*;
 
 import java.io.IOException;
@@ -21,6 +25,7 @@ public class Client {
     private static ArrayList<GameRecord> games;
     private static UserState status;
     private static ServerFacade serverFacade;
+    private static WebSocketFacade ws;
 
     public static void main(String[] args) {
         assert args.length == 2;
@@ -35,6 +40,13 @@ public class Client {
 
     public static void run(String host, int port) {
         serverFacade = new ServerFacade(host, port);
+        String url = "http://" + host + ":" + port;
+        try {
+            ws = new WebSocketFacade(url, new NotificationHandler());
+        } catch (ResponseException e) {
+            System.out.println("Error: could not connect to the server.");
+        }
+
         Scanner scanner = new Scanner(System.in);
         PrintStream out = System.out;
 
@@ -44,6 +56,7 @@ public class Client {
             switch (status) {
                 case LOGGED_OUT -> preLoginUI(out, scanner);
                 case LOGGED_IN -> postLoginUI(out, scanner);
+                case IN_GAME -> gameUI(out, scanner);
                 case QUIT -> {
                     return;
                 }
@@ -120,7 +133,6 @@ public class Client {
     }
 
     private static void postLoginUI(PrintStream out, Scanner scanner) {
-        outer:
         if (scanner.hasNext()) {
             String[] commands = getLine(scanner);
             if (!isAuthorized()) {
@@ -277,6 +289,47 @@ public class Client {
                 observe <ID> - a game
                 logout - when you are done
                 quit - playing chess
+                help - with possible commands
+                """);
+    }
+
+    private static void gameUI(PrintStream out, Scanner scanner) {
+        if (scanner.hasNext()) {
+            String[] commands = getLine(scanner);
+            if (!isAuthorized()) {
+                out.println("Unauthorized");
+                return;
+            }
+            try {
+                games = getGames(out);
+            } catch (Exception e) {
+                out.println("Error");
+            }
+            switch (commands[0]) {
+                case "redraw" -> ;
+                case "leave" -> ;
+                case "move" -> ;
+                case "resign" -> ;
+                case "highlight" -> ;
+                case "help" -> gameHelp(out);
+                default -> System.out.println("Unrecognized Command");
+            }
+        }
+    }
+
+    private static void redrawBoard(PrintStream out) {
+
+    }
+
+    private static void gameHelp(PrintStream out) {
+        out.println("""
+                redraw - the chess board
+                leave - leave the game
+                move <Start> <Finish> <Promotion> - moves a piece at the start coordinate
+                    - to the end position. If a pawn is being promoted, include its promotion
+                    - piece.
+                resign - admit defeat and end the game
+                highlight - highlights all possible moves
                 help - with possible commands
                 """);
     }
