@@ -40,16 +40,17 @@ public class ChessUI {
     public static void main(String[] args) {
         ChessGame game = new ChessGame();
         ArrayList<ChessMove> moves = new ArrayList<>();
-        ChessPosition start = new ChessPosition(1, 1);
+        ChessPosition start = new ChessPosition(2, 2);
         ChessPosition end;
-        for (int i = 1; i < 3; i++) {
-            end = new ChessPosition(1 + i, 1);
+        for (int i = 1; i < 7; i++) {
+            end = new ChessPosition(2 + i, 2 + i);
             moves.add(new ChessMove(start, end));
         }
-        new ChessUI(game, BLACK, moves);
+        new ChessUI(game, WHITE, moves);
     }
 
     public static void run(ChessGame game, String color, ArrayList<ChessMove> moves) {
+        System.out.print(ERASE_SCREEN);
         new ChessUI(game, color, moves);
     }
 
@@ -178,9 +179,12 @@ public class ChessUI {
     }
 
     private static boolean checkMoves(ArrayList<ChessMove> moves, int row, int col) {
+        if (moves==null) {
+            return false;
+        }
         for (ChessMove move : moves) {
             var pos = move.getEndPosition();
-            if (row == pos.getRow() && col == pos.getColumn()) {
+            if (row+1 == pos.getRow() && col+1 == pos.getColumn()) {
                 return true;
             }
         }
@@ -188,8 +192,11 @@ public class ChessUI {
     }
 
     private static boolean checkStartMove(ArrayList<ChessMove> moves, int row, int col) {
+        if (moves==null || moves.isEmpty()) {
+            return false;
+        }
         var move = moves.getFirst().getStartPosition();
-        return row == move.getRow() && col == move.getColumn();
+        return row+1 == move.getRow() && col+1 == move.getColumn();
     }
 
     private static void printVerticalHeader(PrintStream out, int row) {

@@ -20,8 +20,7 @@ import websocket.messages.NotificationMessage;
 
 import static chess.ChessPiece.PieceType.*;
 import static client.UserState.*;
-import static ui.EscapeSequences.RESET_TEXT_COLOR;
-import static ui.EscapeSequences.SET_TEXT_COLOR_RED;
+import static ui.EscapeSequences.*;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -82,7 +81,7 @@ public class Client implements NotificationHandler {
                 case LOGGED_OUT -> preLoginUI(out, scanner);
                 case LOGGED_IN -> postLoginUI(out, scanner);
                 case IN_GAME -> gameUI(out, scanner);
-//                case OBSERVER -> observerUI(out, scanner);
+                case OBSERVER -> observerUI(out, scanner);
                 case QUIT -> {
                     return;
                 }
@@ -91,13 +90,13 @@ public class Client implements NotificationHandler {
     }
 
     public void notify(NotificationMessage notification) {
-        System.out.println("[NOTIFICATION] " + notification.getNotificationMessage());
+        System.out.println("\n[NOTIFICATION] " + notification.getNotificationMessage());
         printCommandline(System.out);
     }
 
     public void error(ErrorMessage errorMessage) {
         System.out.println(SET_TEXT_COLOR_RED);
-        System.out.println("[ERROR] " + errorMessage.getErrorMessage());
+        System.out.println("\n[ERROR] " + errorMessage.getErrorMessage());
         System.out.print(RESET_TEXT_COLOR);
         printCommandline(System.out);
     }
@@ -294,7 +293,7 @@ public class Client implements NotificationHandler {
                 status = IN_GAME;
             }
         } catch (Exception e) {
-            out.println("Incorrect parameter input");
+            out.println("An Error occured");
         }
     }
 
@@ -306,14 +305,6 @@ public class Client implements NotificationHandler {
         int id = Integer.parseInt(param[1]);
         displayGame(id, ChessUI.WHITE, null);
         status = OBSERVER;
-    }
-
-    private static void displayGame(int index, String color, ArrayList<ChessMove> moves) {
-        for (GameRecord game : games) {
-            if (game.gameID().equals(index)) {
-                ChessUI.run(game.game(), color, moves);
-            }
-        }
     }
 
     private static void logoutGame(PrintStream out, String[] param) {
@@ -362,7 +353,7 @@ public class Client implements NotificationHandler {
                 case "leave" -> leaveGame(out, commands);
                 case "move" -> makeMove(out, commands);
                 case "resign" -> resignGame(out, commands);
-//                case "highlight" -> ;
+                case "highlight" -> highlightMoves(out, commands);
                 case "help" -> gameHelp(out);
                 default -> System.out.println("Unrecognized Command");
             }
@@ -406,14 +397,11 @@ public class Client implements NotificationHandler {
     private static void makeMove(PrintStream out, String[] param) {
         if (param.length == 3 || param.length == 4) {
             try {
-                var start = new ChessPosition(letters.get(param[1].charAt(0)), Integer.parseInt(String.valueOf(param[1].charAt(1))));
-                var end = new ChessPosition(letters.get(param[2].charAt(0)), Integer.parseInt(String.valueOf(param[2].charAt(1))));
-                ChessMove move = null;
-                if (param.length==4) {
-                    var piece = pieces.get(param[3].toUpperCase());
-                    move = new ChessMove(start, end, piece);
+                ChessMove move;
+                if (param.length == 3) {
+                    move = makeChessMove(param[1].charAt(1), param[1].charAt(0), param[2].charAt(1), param[2].charAt(0), null);
                 } else {
-                    move = new ChessMove(start, end, null);
+                    move = makeChessMove(param[1].charAt(1), param[1].charAt(0), param[2].charAt(1), param[2].charAt(0), param[3]);
                 }
                 ws.makeMove(UserGameCommand.CommandType.MAKE_MOVE, authToken, currentGameID, move);
             } catch (ResponseException e) {
@@ -425,10 +413,33 @@ public class Client implements NotificationHandler {
     }
 
     private static void highlightMoves(PrintStream out, String[] param) {
-        if (param.length != 1) {
-            out.println("No parameters are needed for highlight");
+        if (param.length != 2) {
+            out.println("Incorrect number of parameters: <Start>");
             return;
         }
+        var num1 = Integer.parseInt(String.valueOf(param[1].charAt(1)));
+        var letter1 = letters.get(String.valueOf(param[1].charAt(0)).toUpperCase());
+        ChessGame game = games.get(currentGameID-1).game();
+        var pos = new ChessPosition(num1, letter1);
+        var piece = game.getBoard().getPiece(pos);
+        ArrayList<ChessMove> moves = (ArrayList<ChessMove>) piece.pieceMoves(game.getBoard(), pos);
+        displayGame(currentGameID, currentGameColor, moves);
+    }
+
+    private static ChessMove makeChessMove(char row1, char col1, char row2, char col2, String piece) {
+        var num1 = Integer.parseInt(String.valueOf(row1));
+        var letter1 = letters.get(String.valueOf(col1).toUpperCase());
+        var num2 = Integer.parseInt(String.valueOf(row2));
+        var letter2 = letters.get(String.valueOf(col2).toUpperCase());
+        var start = new ChessPosition(num1, letter1);
+        var end = new ChessPosition(num2, letter2);
+        ChessPiece.PieceType newPiece;
+        if (piece==null) {
+            newPiece = null;
+        } else {
+            newPiece = pieces.get(piece.toUpperCase());
+        }
+        return new ChessMove(start, end, newPiece);
 
     }
 
@@ -436,11 +447,42 @@ public class Client implements NotificationHandler {
         out.println("""
                 redraw - the chess board
                 leave - leave the game
-                move <Start> <Finish> <Promotion> - moves a piece at the start coordinate
+                move <Start> <Finish> <Promotion> - moves a piece at the start position
                     - to the end position. If a pawn is being promoted, include its promotion
                     - piece.
                     - Ex: c1 d5 queen
                 resign - admit defeat and end the game
+                highlight <Start> - highlights all possible moves for the start piece
+                help - with possible commands
+                """);
+    }
+
+    private static void observerUI(PrintStream out, Scanner scanner) {
+        if (scanner.hasNext()) {
+            String[] commands = getLine(scanner);
+            if (!isAuthorized()) {
+                out.println("Unauthorized");
+                return;
+            }
+            try {
+                games = getGames(out);
+            } catch (Exception e) {
+                out.println("Error");
+            }
+            switch (commands[0]) {
+                case "redraw" -> redrawBoard(out, commands);
+                case "leave" -> leaveGame(out, commands);
+                case "highlight" -> highlightMoves(out, commands);
+                case "help" -> observerHelp(out);
+                default -> System.out.println("Unrecognized Command");
+            }
+        }
+    }
+
+    private static void observerHelp(PrintStream out) {
+        out.println("""
+                redraw - the chess board
+                leave - leave the game
                 highlight - highlights all possible moves
                 help - with possible commands
                 """);
@@ -457,10 +499,12 @@ public class Client implements NotificationHandler {
     }
 
     private static void printCommandline(PrintStream out) {
+        out.print(RESET_TEXT_COLOR + RESET_BG_COLOR);
         String statement = switch (status) {
             case LOGGED_OUT -> "LOGGED_OUT";
             case LOGGED_IN -> "LOGGED_IN";
             case IN_GAME -> "IN_GAME";
+            case OBSERVER -> "OBSERVER";
             case QUIT -> "";
             default -> "ERROR";
         };
@@ -468,6 +512,14 @@ public class Client implements NotificationHandler {
             return;
         }
         out.printf("[%s] >>> ", statement);
+    }
+
+    private static void displayGame(int index, String color, ArrayList<ChessMove> moves) {
+        for (GameRecord game : games) {
+            if (game.gameID().equals(index)) {
+                ChessUI.run(game.game(), color, moves);
+            }
+        }
     }
 
     private static String[] getLine(Scanner scanner) {
