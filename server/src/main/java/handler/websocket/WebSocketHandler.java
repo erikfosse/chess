@@ -184,7 +184,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private String makeMoveMessage(ChessGame game, ChessMove move, String playerName) {
         ChessPosition startPos = move.getStartPosition();
         ChessPosition endPos = move.getEndPosition();
-        ChessPiece piece = game.getBoard().getPiece(startPos);
+        ChessPiece piece = game.getBoard().getPiece(endPos);
         HashMap<Integer, String> letters = new HashMap<>(Map.of(
                 1, "A", 2, "B", 3, "C", 4, "D",
                 5, "E", 6, "F", 7, "G", 8, "H"

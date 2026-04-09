@@ -1,5 +1,4 @@
 package client;//import serverfacade.ServerConnector;
-
 import chess.ChessGame;
 import chess.ChessMove;
 import chess.ChessPiece;
@@ -17,11 +16,9 @@ import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
-
 import static chess.ChessPiece.PieceType.*;
 import static client.UserState.*;
 import static ui.EscapeSequences.*;
-
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
@@ -30,9 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
-
 public class Client implements NotificationHandler {
-
     private static String authToken;
     private static ArrayList<GameRecord> games;
     private static UserState status;
@@ -48,12 +43,10 @@ public class Client implements NotificationHandler {
             "KING", KING, "QUEEN", QUEEN, "ROOK", ROOK, "BISHOP", BISHOP,
             "KNIGHT", KNIGHT, "PAWN", PAWN
     ));
-
     public Client(String host, int port) throws ResponseException {
         serverFacade = new ServerFacade(host, port);
         ws = new WebSocketFacade(host, port, this);
     }
-
     public static void main(String[] args) {
         assert args.length == 2;
         int port = 0;
@@ -69,11 +62,9 @@ public class Client implements NotificationHandler {
             System.out.println("Error: connection to server could not be established.");
         }
     }
-
     public static void run() {
         Scanner scanner = new Scanner(System.in);
         PrintStream out = System.out;
-
         status = LOGGED_OUT;
         while (true) {
             printCommandline(System.out);
@@ -88,29 +79,25 @@ public class Client implements NotificationHandler {
             }
         }
     }
-
     public void notify(NotificationMessage notification) {
         System.out.println("\n[NOTIFICATION] " + notification.getNotificationMessage());
         printCommandline(System.out);
     }
-
     public void error(ErrorMessage errorMessage) {
         System.out.println(SET_TEXT_COLOR_RED);
-        System.out.println("\n[ERROR] " + errorMessage.getErrorMessage());
+        System.out.println("[ERROR] " + errorMessage.getErrorMessage());
         System.out.print(RESET_TEXT_COLOR);
         printCommandline(System.out);
     }
-
     public void loadGame(LoadGameMessage loadGameMessage) {
-        var record = games.get(currentGameID);
+        var record = games.get(currentGameID-1);
         var updateRecord = new GameRecord(record.gameID(), record.whiteUsername(),
                 record.blackUsername(), record.gameName(),
                 loadGameMessage.getGame(), record.resigned());
-        games.add(currentGameID, updateRecord);
-        displayGame(currentGameID, currentGameColor, null);
+        games.add(currentGameID-1, updateRecord);
+        displayGame(currentGameID-1, currentGameColor, null);
         printCommandline(System.out);
     }
-
     private static void preLoginUI(PrintStream out, Scanner scanner) {
         if (scanner.hasNext()) {
             String[] commands = getLine(scanner);
@@ -123,7 +110,6 @@ public class Client implements NotificationHandler {
             }
         }
     }
-
     private static void register(PrintStream out, String[] param) {
         if (param.length != 4) {
             out.println("Incorrect number of parameters: please enter <USERNAME> <PASSWORD> <EMAIL>");
@@ -139,9 +125,7 @@ public class Client implements NotificationHandler {
         } catch (Exception e) {
             out.println("Incorrect parameter input");
         }
-
     }
-
     private static void login(PrintStream out, String[] param) {
         if (param.length != 3) {
             out.println("Incorrect number of parameters: please enter <USERNAME> <PASSWORD>");
@@ -158,7 +142,6 @@ public class Client implements NotificationHandler {
             out.println("Incorrect parameter input");
         }
     }
-
     private static void registerLoginSwitch(PrintStream out, HttpResponse<String> result) {
         switch (result.statusCode()) {
             case 200 -> status = LOGGED_IN;
@@ -168,7 +151,6 @@ public class Client implements NotificationHandler {
             default -> out.println("An Error has occurred");
         }
     }
-
     private static void preLoginHelp(PrintStream out) {
         out.println("""
                 register <USERNAME> <PASSWORD> <EMAIL> - to create and account
@@ -177,7 +159,6 @@ public class Client implements NotificationHandler {
                 help - with possible commands
                 """);
     }
-
     private static void postLoginUI(PrintStream out, Scanner scanner) {
         if (scanner.hasNext()) {
             String[] commands = getLine(scanner);
@@ -202,7 +183,6 @@ public class Client implements NotificationHandler {
             }
         }
     }
-
     private static void createGame(PrintStream out, String[] param) {
         if (param.length != 2) {
             out.println("Incorrect number of parameters: please enter <NAME>");
@@ -219,7 +199,6 @@ public class Client implements NotificationHandler {
             out.println("Incorrect parameter input");
         }
     }
-
     private static void listGames(PrintStream out, String[] param) {
         if (param.length != 1) {
             out.println("No parameters are needed for list");
@@ -240,7 +219,6 @@ public class Client implements NotificationHandler {
             out.println("Incorrect parameter input");
         }
     }
-
     private static ArrayList<GameRecord> getGames(PrintStream out) throws URISyntaxException, IOException, InterruptedException {
         HttpResponse<String> result = serverFacade.listGames(authToken);
         gameSwitch(out, result);
@@ -250,7 +228,6 @@ public class Client implements NotificationHandler {
         }
         return null;
     }
-
     private static Integer getGameID(PrintStream out, int num) throws URISyntaxException, IOException, InterruptedException {
         HttpResponse<String> result = serverFacade.listGames(authToken);
         gameSwitch(out, result);
@@ -266,7 +243,6 @@ public class Client implements NotificationHandler {
         }
         return 0;
     }
-
     private static void joinGame(PrintStream out, String[] param) {
         if (param.length != 3) {
             out.println("Incorrect number of parameters: please enter <ID> [WHITE|BLACK]");
@@ -289,14 +265,12 @@ public class Client implements NotificationHandler {
                 currentGameColor = color;
                 currentGameID = id;
                 ws.connect(UserGameCommand.CommandType.CONNECT, authToken, id);
-                displayGame(id, color, null);
                 status = IN_GAME;
             }
         } catch (Exception e) {
             out.println("An Error occured");
         }
     }
-
     private static void observeGame(PrintStream out, String[] param) {
         if (param.length != 2) {
             out.println("Incorrect number of parameters: please enter <ID>");
@@ -306,7 +280,6 @@ public class Client implements NotificationHandler {
         displayGame(id, ChessUI.WHITE, null);
         status = OBSERVER;
     }
-
     private static void logoutGame(PrintStream out, String[] param) {
         if (param.length != 1) {
             out.println("No parameters are needed for logout");
@@ -323,7 +296,6 @@ public class Client implements NotificationHandler {
             out.println("Incorrect parameter input");
         }
     }
-
     private static void postLoginHelp(PrintStream out) {
         out.println("""
                 create <NAME> - a game
@@ -335,7 +307,6 @@ public class Client implements NotificationHandler {
                 help - with possible commands
                 """);
     }
-
     private static void gameUI(PrintStream out, Scanner scanner) {
         if (scanner.hasNext()) {
             String[] commands = getLine(scanner);
@@ -359,7 +330,6 @@ public class Client implements NotificationHandler {
             }
         }
     }
-
     private static void redrawBoard(PrintStream out, String[] param) {
         if (param.length != 1) {
             out.println("No parameters are needed for redraw");
@@ -367,7 +337,6 @@ public class Client implements NotificationHandler {
         }
         displayGame(currentGameID, currentGameColor, null);
     }
-
     private static void leaveGame(PrintStream out, String[] param) {
         if (param.length != 1) {
             out.println("No parameters are needed for leave");
@@ -380,7 +349,6 @@ public class Client implements NotificationHandler {
         }
         status = LOGGED_IN;
     }
-
     private static void resignGame(PrintStream out, String[] param) {
         if (param.length != 1) {
             out.println("No parameters are needed for resign");
@@ -393,7 +361,6 @@ public class Client implements NotificationHandler {
         }
         status = LOGGED_IN;
     }
-
     private static void makeMove(PrintStream out, String[] param) {
         if (param.length == 3 || param.length == 4) {
             try {
@@ -411,7 +378,6 @@ public class Client implements NotificationHandler {
             out.println("Incorrect number of parameters: <Start> <Finish> <Promotion>");
         }
     }
-
     private static void highlightMoves(PrintStream out, String[] param) {
         if (param.length != 2) {
             out.println("Incorrect number of parameters: <Start>");
@@ -425,7 +391,6 @@ public class Client implements NotificationHandler {
         ArrayList<ChessMove> moves = (ArrayList<ChessMove>) piece.pieceMoves(game.getBoard(), pos);
         displayGame(currentGameID, currentGameColor, moves);
     }
-
     private static ChessMove makeChessMove(char row1, char col1, char row2, char col2, String piece) {
         var num1 = Integer.parseInt(String.valueOf(row1));
         var letter1 = letters.get(String.valueOf(col1).toUpperCase());
@@ -440,9 +405,7 @@ public class Client implements NotificationHandler {
             newPiece = pieces.get(piece.toUpperCase());
         }
         return new ChessMove(start, end, newPiece);
-
     }
-
     private static void gameHelp(PrintStream out) {
         out.println("""
                 redraw - the chess board
@@ -456,7 +419,6 @@ public class Client implements NotificationHandler {
                 help - with possible commands
                 """);
     }
-
     private static void observerUI(PrintStream out, Scanner scanner) {
         if (scanner.hasNext()) {
             String[] commands = getLine(scanner);
@@ -478,7 +440,6 @@ public class Client implements NotificationHandler {
             }
         }
     }
-
     private static void observerHelp(PrintStream out) {
         out.println("""
                 redraw - the chess board
@@ -487,7 +448,6 @@ public class Client implements NotificationHandler {
                 help - with possible commands
                 """);
     }
-
     private static void gameSwitch(PrintStream out, HttpResponse<String> result) {
         switch (result.statusCode()) {
             case 200 -> out.print("");
@@ -497,7 +457,6 @@ public class Client implements NotificationHandler {
             default -> out.println("An Error has occurred");
         }
     }
-
     private static void printCommandline(PrintStream out) {
         out.print(RESET_TEXT_COLOR + RESET_BG_COLOR);
         String statement = switch (status) {
@@ -513,7 +472,6 @@ public class Client implements NotificationHandler {
         }
         out.printf("[%s] >>> ", statement);
     }
-
     private static void displayGame(int index, String color, ArrayList<ChessMove> moves) {
         for (GameRecord game : games) {
             if (game.gameID().equals(index)) {
@@ -521,12 +479,10 @@ public class Client implements NotificationHandler {
             }
         }
     }
-
     private static String[] getLine(Scanner scanner) {
         String line = scanner.nextLine();
         return line.split(" ");
     }
-
     private static boolean isAuthorized() {
         return !authToken.isEmpty();
     }
