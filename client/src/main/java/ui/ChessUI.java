@@ -1,11 +1,14 @@
 package ui;
 
 import chess.ChessGame;
+import chess.ChessMove;
 import chess.ChessPiece;
 import chess.ChessPosition;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
@@ -16,7 +19,7 @@ import static ui.EscapeSequences.WHITE_ROOK;
 public class ChessUI {
 
     private static final int BOARD_SIZE_IN_SQUARES = 8;
-    private static final int SQUARE_SIZE_IN_PADDED_CHARS = 3;
+    private static final int SQUARE_SIZE_IN_PADDED_CHARS = 1;
     private static final int LINE_WIDTH_IN_PADDED_CHARS = 1;
     private static final String[] COL_HEADERS = {"H", "G", "F", "E", "D", "C", "B", "A"};
     private static final String[] ROW_HEADERS = {"1", "2", "3", "4", "5", "6", "7", "8"};
@@ -24,26 +27,36 @@ public class ChessUI {
     public static final String WHITE = "WHITE";
 
 
-    private ChessUI(ChessGame game, String color) {
+    private ChessUI(ChessGame game, String color, ArrayList<ChessMove> moves) {
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
         out.print(ERASE_SCREEN);
         drawHeaders(out, color);
-        drawChessBoard(out, game, color);
+        drawChessBoard(out, game, color, moves);
         out.print(RESET);
+        drawHeaders(out, color);
     }
 
     public static void main(String[] args) {
         ChessGame game = new ChessGame();
-        new ChessUI(game, WHITE);
+        ArrayList<ChessMove> moves = new ArrayList<>();
+        ChessPosition start = new ChessPosition(1, 1);
+        ChessPosition end;
+        for (int i = 1; i < 3; i++) {
+            end = new ChessPosition(1 + i, 1);
+            moves.add(new ChessMove(start, end));
+        }
+        new ChessUI(game, BLACK, moves);
     }
 
-    public static void run(ChessGame game, String color) {
-        new ChessUI(game, color);
+    public static void run(ChessGame game, String color, ArrayList<ChessMove> moves) {
+        new ChessUI(game, color, moves);
     }
 
     private static void drawHeaders(PrintStream out, String color) {
         setBlack(out);
+        out.print(SET_BG_COLOR_WHITE);
+        out.print("   ");
         if (color.equals("BLACK")) {
             for (int boardCol = 0; boardCol < BOARD_SIZE_IN_SQUARES; ++boardCol) {
                 drawHeader(out, COL_HEADERS[boardCol]);
@@ -54,84 +67,135 @@ public class ChessUI {
             }
         }
         out.print(SET_BG_COLOR_WHITE);
-        out.print("    ");
+        out.print("   ");
         setBlack(out);
         out.println();
     }
 
     private static void drawHeader(PrintStream out, String headerText) {
-        int prefixLength = SQUARE_SIZE_IN_PADDED_CHARS / 2;
-        int suffixLength = SQUARE_SIZE_IN_PADDED_CHARS - prefixLength - 1;
-
         out.print(SET_BG_COLOR_WHITE);
         out.print(SET_TEXT_BOLD);
         out.print(SET_TEXT_COLOR_DARK_GREY);
-        String wideEmpty = "  \u2003\u2002\u2005";
-        out.print(wideEmpty.repeat(prefixLength));
-        out.print(headerText);
-        out.print(wideEmpty.repeat(suffixLength));
+        out.print("\u2002\u2005" + headerText + "\u2002\u2004");
         setBlack(out);
     }
 
-    private static void drawChessBoard(PrintStream out, ChessGame game,  String color) {
+    private static void drawChessBoard(PrintStream out, ChessGame game,  String color,
+                                       ArrayList<ChessMove> moves) {
         if (color.equals("BLACK")) {
             for (int boardRow = 0; boardRow < BOARD_SIZE_IN_SQUARES; ++boardRow) {
-                drawRowOfSquares(out, game, boardRow);
+                printRow(out, game, color, boardRow, moves);
             }
         } else {
             for (int boardRow = BOARD_SIZE_IN_SQUARES - 1; boardRow >= 0; --boardRow) {
-                drawRowOfSquares(out, game, boardRow);
+                printRow(out, game, color, boardRow, moves);
             }
         }
     }
 
-    private static void drawRowOfSquares(PrintStream out, ChessGame game, int row) {
+    private static void printRow(PrintStream out, ChessGame game, String color, int row,
+                                 ArrayList<ChessMove> moves) {
 
-        int count = row;
-        for (int squareRow = 0; squareRow < SQUARE_SIZE_IN_PADDED_CHARS; ++squareRow) {
-            for (int boardCol = 0; boardCol < BOARD_SIZE_IN_SQUARES; ++boardCol) {
-                if (isEven(count)) {
-                    out.print(SET_BG_COLOR_DARK_GREEN);
-                    out.print(SET_TEXT_COLOR_WHITE);
-                } else {
-                    out.print(SET_BG_COLOR_LIGHT_GREY);
-                }
-
-                if (squareRow == SQUARE_SIZE_IN_PADDED_CHARS / 2) {
-                    int prefixLength = SQUARE_SIZE_IN_PADDED_CHARS / 2;
-                    int suffixLength = SQUARE_SIZE_IN_PADDED_CHARS - prefixLength - 1;
-
-                    var position = new ChessPosition(row + 1, boardCol + 1);
-                    var piece = game.getBoard().getPiece(position);
-                    if (piece != null) {
-                        out.print(EMPTY.repeat(prefixLength));
-                        printPlayer(out, piece.getPieceType(), piece.getTeamColor());
-                        out.print(EMPTY.repeat(suffixLength));
-                    } else {
-                        out.print(EMPTY.repeat(SQUARE_SIZE_IN_PADDED_CHARS));
-                    }
-                } else {
-                    out.print(EMPTY.repeat(SQUARE_SIZE_IN_PADDED_CHARS));
-                }
-                count++;
-            }
-            printVerticalHeader(out, ROW_HEADERS[row], squareRow);
-            setBlack(out);
-            out.println();
-        }
-    }
-
-    private static void printVerticalHeader(PrintStream out, String headerText, int squareRow) {
-        if (squareRow == 1) {
-            out.print(SET_BG_COLOR_WHITE);
-            out.print(SET_TEXT_BOLD);
-            out.print(SET_TEXT_COLOR_DARK_GREY);
-            out.printf(" %s ", headerText);
+        printVerticalHeader(out, row);
+        if (color.equals("WHITE")) {
+            printChessRowHelperWhite(out, game, row, moves);
         } else {
-            out.print(SET_BG_COLOR_WHITE);
-            out.print(SET_TEXT_COLOR_LIGHT_GREY);
-            out.print("   ");
+            printChessRowHelperBlack(out, game, row, moves);
         }
+        printVerticalHeader(out, row);
+        setBlack(out);
+        out.println();
+    }
+
+    private static void printChessRowHelperWhite(PrintStream out, ChessGame game, int row,
+                                                 ArrayList<ChessMove> moves) {
+        int count = row;
+        for (int boardCol = 0; boardCol < BOARD_SIZE_IN_SQUARES; ++boardCol) {
+            if (isEven(count)) {
+                printBlackSpot(out, moves, row, boardCol);
+            } else {
+                printWhiteSpot(out, moves, row, boardCol);
+            }
+            int prefixLength = SQUARE_SIZE_IN_PADDED_CHARS / 2;
+            int suffixLength = SQUARE_SIZE_IN_PADDED_CHARS - prefixLength - 1;
+
+            var position = new ChessPosition(row + 1, boardCol + 1);
+            var piece = game.getBoard().getPiece(position);
+            if (piece != null) {
+                out.print(EMPTY.repeat(prefixLength));
+                printPlayer(out, piece.getPieceType(), piece.getTeamColor());
+                out.print(EMPTY.repeat(suffixLength));
+            } else {
+                out.print(EMPTY.repeat(SQUARE_SIZE_IN_PADDED_CHARS));
+            }
+            count++;
+        }
+    }
+
+    private static void printChessRowHelperBlack(PrintStream out, ChessGame game, int row,
+                                                 ArrayList<ChessMove> moves) {
+        int count = row;
+        for (int boardCol = BOARD_SIZE_IN_SQUARES - 1; boardCol >= 0 ; --boardCol) {
+            if (isEven(count)) {
+                printWhiteSpot(out, moves, row, boardCol);
+            } else {
+                printBlackSpot(out, moves, row, boardCol);
+            }
+            int prefixLength = SQUARE_SIZE_IN_PADDED_CHARS / 2;
+            int suffixLength = SQUARE_SIZE_IN_PADDED_CHARS - prefixLength - 1;
+
+            var position = new ChessPosition(row + 1, boardCol + 1);
+            var piece = game.getBoard().getPiece(position);
+            if (piece != null) {
+                out.print(EMPTY.repeat(prefixLength));
+                printPlayer(out, piece.getPieceType(), piece.getTeamColor());
+                out.print(EMPTY.repeat(suffixLength));
+            } else {
+                out.print(EMPTY.repeat(SQUARE_SIZE_IN_PADDED_CHARS));
+            }
+            count++;
+        }
+    }
+
+    private static void printWhiteSpot(PrintStream out, ArrayList<ChessMove> moves, int row, int col) {
+        if (checkStartMove(moves, row, col)) {
+            out.print(SET_BG_COLOR_BLUE);
+        } else if (checkMoves(moves, row, col)) {
+            out.print(SET_BG_COLOR_YELLOW);
+        } else {
+            out.print(SET_BG_COLOR_LIGHT_GREY);
+        }
+    }
+
+    private static void printBlackSpot(PrintStream out, ArrayList<ChessMove> moves, int row, int col) {
+        if (checkStartMove(moves, row, col)) {
+            out.print(SET_BG_COLOR_BLUE);
+        } else if (checkMoves(moves, row, col)) {
+            out.print(SET_BG_COLOR_GREEN);
+        } else {
+            out.print(SET_BG_COLOR_DARK_GREEN);
+        }
+    }
+
+    private static boolean checkMoves(ArrayList<ChessMove> moves, int row, int col) {
+        for (ChessMove move : moves) {
+            var pos = move.getEndPosition();
+            if (row == pos.getRow() && col == pos.getColumn()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean checkStartMove(ArrayList<ChessMove> moves, int row, int col) {
+        var move = moves.getFirst().getStartPosition();
+        return row == move.getRow() && col == move.getColumn();
+    }
+
+    private static void printVerticalHeader(PrintStream out, int row) {
+        out.print(SET_TEXT_COLOR_BLACK);
+        out.print(SET_BG_COLOR_WHITE);
+        out.print(" " + ROW_HEADERS[row] + " ");
     }
 
     private static boolean isEven(int num) {

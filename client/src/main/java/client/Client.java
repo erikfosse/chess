@@ -82,7 +82,7 @@ public class Client implements NotificationHandler {
                 case LOGGED_OUT -> preLoginUI(out, scanner);
                 case LOGGED_IN -> postLoginUI(out, scanner);
                 case IN_GAME -> gameUI(out, scanner);
-                case OBSERVER -> observerUI(out, scanner);
+//                case OBSERVER -> observerUI(out, scanner);
                 case QUIT -> {
                     return;
                 }
@@ -108,7 +108,7 @@ public class Client implements NotificationHandler {
                 record.blackUsername(), record.gameName(),
                 loadGameMessage.getGame(), record.resigned());
         games.add(currentGameID, updateRecord);
-        displayGame(currentGameID, currentGameColor);
+        displayGame(currentGameID, currentGameColor, null);
         printCommandline(System.out);
     }
 
@@ -290,6 +290,7 @@ public class Client implements NotificationHandler {
                 currentGameColor = color;
                 currentGameID = id;
                 ws.connect(UserGameCommand.CommandType.CONNECT, authToken, id);
+                displayGame(id, color, null);
                 status = IN_GAME;
             }
         } catch (Exception e) {
@@ -303,14 +304,14 @@ public class Client implements NotificationHandler {
             return;
         }
         int id = Integer.parseInt(param[1]);
-        displayGame(id, ChessUI.WHITE);
+        displayGame(id, ChessUI.WHITE, null);
         status = OBSERVER;
     }
 
-    private static void displayGame(int index, String color) {
+    private static void displayGame(int index, String color, ArrayList<ChessMove> moves) {
         for (GameRecord game : games) {
             if (game.gameID().equals(index)) {
-                ChessUI.run(game.game(), color);
+                ChessUI.run(game.game(), color, moves);
             }
         }
     }
@@ -373,7 +374,7 @@ public class Client implements NotificationHandler {
             out.println("No parameters are needed for redraw");
             return;
         }
-        displayGame(currentGameID, currentGameColor);
+        displayGame(currentGameID, currentGameColor, null);
     }
 
     private static void leaveGame(PrintStream out, String[] param) {
@@ -421,10 +422,15 @@ public class Client implements NotificationHandler {
         } else {
             out.println("Incorrect number of parameters: <Start> <Finish> <Promotion>");
         }
-
     }
 
+    private static void highlightMoves(PrintStream out, String[] param) {
+        if (param.length != 1) {
+            out.println("No parameters are needed for highlight");
+            return;
+        }
 
+    }
 
     private static void gameHelp(PrintStream out) {
         out.println("""
