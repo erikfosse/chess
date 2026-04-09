@@ -36,7 +36,7 @@ public class ServerFacadeTests {
     static void stopServer() {
         try {
             serverFacade.clear();
-        } catch (Exception _) {}
+        } catch (Exception e) {}
         server.stop();
     }
 
