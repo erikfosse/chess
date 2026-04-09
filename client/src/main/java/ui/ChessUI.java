@@ -117,18 +117,7 @@ public class ChessUI {
             } else {
                 printWhiteSpot(out, moves, row, boardCol);
             }
-            int prefixLength = SQUARE_SIZE_IN_PADDED_CHARS / 2;
-            int suffixLength = SQUARE_SIZE_IN_PADDED_CHARS - prefixLength - 1;
-
-            var position = new ChessPosition(row + 1, boardCol + 1);
-            var piece = game.getBoard().getPiece(position);
-            if (piece != null) {
-                out.print(EMPTY.repeat(prefixLength));
-                printPlayer(out, piece.getPieceType(), piece.getTeamColor());
-                out.print(EMPTY.repeat(suffixLength));
-            } else {
-                out.print(EMPTY.repeat(SQUARE_SIZE_IN_PADDED_CHARS));
-            }
+            rowHelperFunction(out, row, boardCol, game);
             count++;
         }
     }
@@ -142,39 +131,41 @@ public class ChessUI {
             } else {
                 printBlackSpot(out, moves, row, boardCol);
             }
-            int prefixLength = SQUARE_SIZE_IN_PADDED_CHARS / 2;
-            int suffixLength = SQUARE_SIZE_IN_PADDED_CHARS - prefixLength - 1;
-
-            var position = new ChessPosition(row + 1, boardCol + 1);
-            var piece = game.getBoard().getPiece(position);
-            if (piece != null) {
-                out.print(EMPTY.repeat(prefixLength));
-                printPlayer(out, piece.getPieceType(), piece.getTeamColor());
-                out.print(EMPTY.repeat(suffixLength));
-            } else {
-                out.print(EMPTY.repeat(SQUARE_SIZE_IN_PADDED_CHARS));
-            }
+            rowHelperFunction(out, row, boardCol, game);
             count++;
         }
     }
 
-    private static void printWhiteSpot(PrintStream out, ArrayList<ChessMove> moves, int row, int col) {
-        if (checkStartMove(moves, row, col)) {
-            out.print(SET_BG_COLOR_BLUE);
-        } else if (checkMoves(moves, row, col)) {
-            out.print(SET_BG_COLOR_YELLOW);
+    private static void rowHelperFunction(PrintStream out, int row, int boardCol, ChessGame game) {
+        int prefixLength = SQUARE_SIZE_IN_PADDED_CHARS / 2;
+        int suffixLength = SQUARE_SIZE_IN_PADDED_CHARS - prefixLength - 1;
+
+        var position = new ChessPosition(row + 1, boardCol + 1);
+        var piece = game.getBoard().getPiece(position);
+        if (piece != null) {
+            out.print(EMPTY.repeat(prefixLength));
+            printPlayer(out, piece.getPieceType(), piece.getTeamColor());
+            out.print(EMPTY.repeat(suffixLength));
         } else {
-            out.print(SET_BG_COLOR_LIGHT_GREY);
+            out.print(EMPTY.repeat(SQUARE_SIZE_IN_PADDED_CHARS));
         }
     }
 
+    private static void printWhiteSpot(PrintStream out, ArrayList<ChessMove> moves, int row, int col) {
+        printSpotHelper(out, moves, row, col, SET_BG_COLOR_YELLOW, SET_BG_COLOR_LIGHT_GREY);
+    }
+
     private static void printBlackSpot(PrintStream out, ArrayList<ChessMove> moves, int row, int col) {
+        printSpotHelper(out, moves, row, col, SET_BG_COLOR_GREEN, SET_BG_COLOR_DARK_GREEN);
+    }
+
+    private static void printSpotHelper(PrintStream out, ArrayList<ChessMove> moves, int row, int col, String color1, String color2) {
         if (checkStartMove(moves, row, col)) {
             out.print(SET_BG_COLOR_BLUE);
         } else if (checkMoves(moves, row, col)) {
-            out.print(SET_BG_COLOR_GREEN);
+            out.print(color1);
         } else {
-            out.print(SET_BG_COLOR_DARK_GREEN);
+            out.print(color2);
         }
     }
 

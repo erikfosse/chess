@@ -45,7 +45,8 @@ public class WebSocketFacade extends Endpoint {
                             notificationHandler.error(errorMessage);
                         }
                         case NOTIFICATION -> {
-                            NotificationMessage notificationMessage = (NotificationMessage) JsonSerialization.fromJson(message, NotificationMessage.class);
+                            NotificationMessage notificationMessage = (NotificationMessage) JsonSerialization.fromJson(message,
+                                    NotificationMessage.class);
                             notificationHandler.notify(notificationMessage);
                         }
                         case null, default -> {

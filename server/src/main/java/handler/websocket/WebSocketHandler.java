@@ -47,8 +47,8 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             switch (command.getCommandType()) {
                 case CONNECT -> connect(command.getAuthToken(), command.getGameID(), ctx.session);
                 case MAKE_MOVE -> {
-                    var command_1 = (MakeMoveCommand) JsonSerialization.fromJson(ctx.message(), MakeMoveCommand.class);
-                    makeMove(command.getAuthToken(), command.getGameID(), command_1.getMove(), ctx.session);
+                    var command1 = (MakeMoveCommand) JsonSerialization.fromJson(ctx.message(), MakeMoveCommand.class);
+                    makeMove(command.getAuthToken(), command.getGameID(), command1.getMove(), ctx.session);
                 }
                 case LEAVE -> leave(command.getAuthToken(), command.getGameID(), ctx.session);
                 case RESIGN -> resign(command.getAuthToken(), command.getGameID(), ctx.session);
