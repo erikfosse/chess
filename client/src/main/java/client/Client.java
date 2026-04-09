@@ -9,7 +9,6 @@ import model.exception.ResponseException;
 import model.result.*;
 import serverfacade.ServerFacade;
 import ui.ChessUI;
-import ui.EscapeSequences.*;
 import websocket.NotificationHandler;
 import websocket.WebSocketFacade;
 import websocket.commands.UserGameCommand;
@@ -35,11 +34,11 @@ public class Client implements NotificationHandler {
     private static WebSocketFacade ws;
     private static int currentGameID;
     private static String currentGameColor;
-    private static final Map<String, Integer> Letters = new HashMap<>(Map.of(
+    private static final Map<String, Integer> LETTERS = new HashMap<>(Map.of(
             "A", 1, "B", 2, "C", 3, "D", 4,
             "E", 5, "F", 6, "G", 7, "H", 8
     ));
-    private static final Map<String, ChessPiece.PieceType> Pieces = new HashMap<>(Map.of(
+    private static final Map<String, ChessPiece.PieceType> PIECES = new HashMap<>(Map.of(
             "KING", KING, "QUEEN", QUEEN, "ROOK", ROOK, "BISHOP", BISHOP,
             "KNIGHT", KNIGHT, "PAWN", PAWN
     ));
@@ -384,7 +383,7 @@ public class Client implements NotificationHandler {
             return;
         }
         var num1 = Integer.parseInt(String.valueOf(param[1].charAt(1)));
-        var letter1 = Letters.get(String.valueOf(param[1].charAt(0)).toUpperCase());
+        var letter1 = LETTERS.get(String.valueOf(param[1].charAt(0)).toUpperCase());
         ChessGame game = games.get(currentGameID-1).game();
         var pos = new ChessPosition(num1, letter1);
         var piece = game.getBoard().getPiece(pos);
@@ -393,16 +392,16 @@ public class Client implements NotificationHandler {
     }
     private static ChessMove makeChessMove(char row1, char col1, char row2, char col2, String piece) {
         var num1 = Integer.parseInt(String.valueOf(row1));
-        var letter1 = Letters.get(String.valueOf(col1).toUpperCase());
+        var letter1 = LETTERS.get(String.valueOf(col1).toUpperCase());
         var num2 = Integer.parseInt(String.valueOf(row2));
-        var letter2 = Letters.get(String.valueOf(col2).toUpperCase());
+        var letter2 = LETTERS.get(String.valueOf(col2).toUpperCase());
         var start = new ChessPosition(num1, letter1);
         var end = new ChessPosition(num2, letter2);
         ChessPiece.PieceType newPiece;
         if (piece==null) {
             newPiece = null;
         } else {
-            newPiece = Pieces.get(piece.toUpperCase());
+            newPiece = PIECES.get(piece.toUpperCase());
         }
         return new ChessMove(start, end, newPiece);
     }
