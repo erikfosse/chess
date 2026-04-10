@@ -22,13 +22,11 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
+
 public class Client implements NotificationHandler {
     private static String authToken;
-    private static ArrayList<GameRecord> games;
+    private static ArrayList<GameRecord> gamesRec;
     private static UserState status;
     private static ServerFacade serverFacade;
     private static WebSocketFacade ws;
@@ -89,12 +87,13 @@ public class Client implements NotificationHandler {
         printCommandline(System.out);
     }
     public void loadGame(LoadGameMessage loadGameMessage) {
-        var record = games.get(currentGameID-1);
+        var record = gamesRec.get(currentGameID-1);
         var updateRecord = new GameRecord(record.gameID(), record.whiteUsername(),
                 record.blackUsername(), record.gameName(),
                 loadGameMessage.getGame(), record.resigned());
-        games.add(currentGameID-1, updateRecord);
-        displayGame(currentGameID-1, currentGameColor, null);
+        gamesRec.remove(currentGameID-1);
+        gamesRec.add(currentGameID-1, updateRecord);
+        displayGame(currentGameID, currentGameColor, null);
         printCommandline(System.out);
     }
     private static void preLoginUI(PrintStream out, Scanner scanner) {
@@ -166,7 +165,7 @@ public class Client implements NotificationHandler {
                 return;
             }
             try {
-                games = getGames(out);
+                gamesRec = getGames(out);
             } catch (Exception e) {
                 out.println("Error");
             }
@@ -204,13 +203,13 @@ public class Client implements NotificationHandler {
             return;
         }
         try {
-            games = getGames(out);
-            if (games != null && games.isEmpty()) {
+            gamesRec = getGames(out);
+            if (gamesRec != null && gamesRec.isEmpty()) {
                 out.println("No active games");
                 return;
             }
             int i = 1;
-            for (GameRecord game : games) {
+            for (GameRecord game : gamesRec) {
                 out.printf("#%d - %s %n  white: %s, %n  black: %s%n", i, game.gameName(), game.whiteUsername(), game.blackUsername());
                 i++;
             }
@@ -250,7 +249,7 @@ public class Client implements NotificationHandler {
         try {
             int id = Integer.parseInt(param[1]);
             int gameID = getGameID(out, id);
-            if (games.isEmpty()) {
+            if (gamesRec.isEmpty()) {
                 out.print("There are not active games. Please create a game to start.");
             }
             if (gameID == 0) {
@@ -276,8 +275,15 @@ public class Client implements NotificationHandler {
             return;
         }
         int id = Integer.parseInt(param[1]);
-        displayGame(id, ChessUI.WHITE, null);
-        status = OBSERVER;
+        try {
+            currentGameColor = "WHITE";
+            currentGameID = id;
+            ws.connect(UserGameCommand.CommandType.OBSERVER, authToken, id);
+            status = OBSERVER;
+        } catch (ResponseException e) {
+            out.println("An Error occured");
+        }
+
     }
     private static void logoutGame(PrintStream out, String[] param) {
         if (param.length != 1) {
@@ -314,7 +320,7 @@ public class Client implements NotificationHandler {
                 return;
             }
             try {
-                games = getGames(out);
+                gamesRec = getGames(out);
             } catch (Exception e) {
                 out.println("Error");
             }
@@ -358,12 +364,15 @@ public class Client implements NotificationHandler {
         } catch (ResponseException e) {
             out.println("Error: could not connect to the server.");
         }
-        status = LOGGED_IN;
     }
     private static void makeMove(PrintStream out, String[] param) {
         if (param.length == 3 || param.length == 4) {
             try {
                 ChessMove move;
+                if (Character.isDigit(param[1].charAt(0))) {
+                    System.out.println(SET_TEXT_COLOR_RED+ "[ERROR]: incorrect input type");
+                    return;
+                }
                 if (param.length == 3) {
                     move = makeChessMove(param[1].charAt(1), param[1].charAt(0), param[2].charAt(1), param[2].charAt(0), null);
                 } else {
@@ -384,10 +393,14 @@ public class Client implements NotificationHandler {
         }
         var num1 = Integer.parseInt(String.valueOf(param[1].charAt(1)));
         var letter1 = LETTERS.get(String.valueOf(param[1].charAt(0)).toUpperCase());
-        ChessGame game = games.get(currentGameID-1).game();
+        ChessGame game = gamesRec.get(currentGameID-1).game();
         var pos = new ChessPosition(num1, letter1);
-        var piece = game.getBoard().getPiece(pos);
-        ArrayList<ChessMove> moves = (ArrayList<ChessMove>) piece.pieceMoves(game.getBoard(), pos);
+        ArrayList<ChessMove> moves;
+        if (game.getBoard().getPiece(pos) == null) {
+            moves = new ArrayList<ChessMove>(List.of(new ChessMove(pos, pos)));
+        } else {
+            moves = (ArrayList<ChessMove>) game.validMoves(pos);
+        }
         displayGame(currentGameID, currentGameColor, moves);
     }
     private static ChessMove makeChessMove(char row1, char col1, char row2, char col2, String piece) {
@@ -426,7 +439,7 @@ public class Client implements NotificationHandler {
                 return;
             }
             try {
-                games = getGames(out);
+                gamesRec = getGames(out);
             } catch (Exception e) {
                 out.println("Error");
             }
@@ -472,7 +485,7 @@ public class Client implements NotificationHandler {
         out.printf("[%s] >>> ", statement);
     }
     private static void displayGame(int index, String color, ArrayList<ChessMove> moves) {
-        for (GameRecord game : games) {
+        for (GameRecord game : gamesRec) {
             if (game.gameID().equals(index)) {
                 ChessUI.run(game.game(), color, moves);
             }

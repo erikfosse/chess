@@ -52,6 +52,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 }
                 case LEAVE -> leave(command.getAuthToken(), command.getGameID(), ctx.session);
                 case RESIGN -> resign(command.getAuthToken(), command.getGameID(), ctx.session);
+                case OBSERVER -> observe(command.getAuthToken(), command.getGameID(), ctx.session);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -66,9 +67,35 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private void connect(String authToken, int gameID, Session session) throws Exception {
         connections.add(gameID, session);
         if (isValidAuth(authToken) && isValidGameID(gameID)) {
+            var game = gameDao.getGame(gameID);
             String playerName = getUserName(authToken);
+            if (isObserver(authToken, gameID)) {
+                var message = String.format("%s has joined as an Observer", playerName);
+                var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+                inclusiveLoadGame(session, gameID);
+                connections.exclusiveBroadcast(session, notification, gameID);
+                return;
+            }
             String color = colorToString(getUserColor(authToken, gameID));
             var message = String.format("%s has joined as %s", playerName, color);
+            var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+
+            gameDao.editGame(gameID, color, playerName);
+            inclusiveLoadGame(session, gameID);
+            connections.exclusiveBroadcast(session, notification, gameID);
+        }
+        else {
+            var message = "Error: Invalid credentials";
+            var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, message);
+            connections.inclusiveBroadcast(session, error, gameID);
+        }
+    }
+
+    private void observe (String authToken, int gameID, Session session) throws Exception {
+        connections.add(gameID, session);
+        if (isValidAuth(authToken) && isValidGameID(gameID)) {
+            String playerName = getUserName(authToken);
+            var message = String.format("%s has joined as an Observer", playerName);
             var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
             inclusiveLoadGame(session, gameID);
             connections.exclusiveBroadcast(session, notification, gameID);
@@ -80,10 +107,15 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    private void leave(String authToken, int gameID, Session session) throws IOException, AlreadyTakenException {
+    private void leave(String authToken, int gameID, Session session) throws IOException, DataAccessException {
         String playerName = getUserName(authToken);
         removePlayerFromGame(authToken, gameID);
-        var message = String.format("%s left the game", playerName);
+        String message;
+        if (isObserver(authToken, gameID)) {
+            message = String.format("%s stopped observing the game", playerName);
+        } else {
+            message = String.format("%s left the game", playerName);
+        }
         var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
         connections.remove(gameID, session);
         connections.exclusiveBroadcast(session, notification, gameID);
@@ -115,29 +147,36 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         try {
             GameRecord record = gameDao.getGame(gameID);
             var game = record.game();
-
+            var startPos = move.getStartPosition();
+            if (!game.validMoves(startPos).contains(move)) {
+                makeErrorMessage("Illegal move", session, gameID);
+                return;
+            }
             if (!isValidAuth(authToken)) {
-                makeErrorMessage("Error: Unathorized", session, gameID);
+                makeErrorMessage("Unauthorized", session, gameID);
                 return;
             }
             if (record.resigned()) {
-                makeErrorMessage("Error: gave over no moves possible", session, gameID);
+                makeErrorMessage("Game over no moves possible", session, gameID);
                 return;
             }
             if (isObserver(authToken, gameID)) {
-                makeErrorMessage("Error: observers cannot resign", session, gameID);
+                makeErrorMessage("Observers cannot move", session, gameID);
                 return;
             }
 
             var teamColor = getUserColor(authToken, gameID);
             if (!game.getTeamTurn().equals(teamColor)) {
-                makeErrorMessage("Error: not your turn. Wait for opponent to play", session, gameID);
+                makeErrorMessage("Not your turn, wait for opponent to play", session, gameID);
                 return;
             }
 
             var playerName = getUserName(authToken);
+            var color = getUserColor(authToken, gameID);
             ChessPosition pos = move.getStartPosition();
-            if (game.validMoves(pos).contains(move)) {
+            var pieceColor = game.getBoard().getPiece(pos).getTeamColor();
+
+            if (game.validMoves(pos).contains(move) && pieceColor.equals(color)) {
                 game.makeMove(move);
                 gameDao.updateGame(gameID, game);
                 exclusiveLoadGame(null, gameID);
@@ -145,29 +184,31 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
                 connections.exclusiveBroadcast(session, notification, gameID);
 
-                var checkMessage = checkGameMessage(game);
-                if (!checkMessage.isEmpty()) {
-                    notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, checkMessage);
+                var checkGameMessage = checkGame(game, gameID);
+                if (!checkGameMessage.isEmpty()) {
+                    notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, checkGameMessage);
                     connections.exclusiveBroadcast(null, notification, gameID);
                 }
             } else {
-                makeErrorMessage("Error: no possible moves", session, gameID);
+                makeErrorMessage("Not a possible move", session, gameID);
             }
         } catch (Exception e) {
             throw new IOException();
         }
     }
 
-    private String checkGameMessage(ChessGame game) {
+    private String checkGame(ChessGame game, int gameID) throws DataAccessException {
         List<ChessGame.TeamColor> colors = List.of(ChessGame.TeamColor.BLACK, ChessGame.TeamColor.WHITE);
         String message = "";
         for (ChessGame.TeamColor color : colors) {
-            if (game.isInCheck(color)) {
-                message = String.format("%s is in check", color);
-            } if (game.isInCheckmate(color)) {
+            if (game.isInCheckmate(color)) {
                 message = String.format("%s is in checkmate", color);
-            } if (game.isInStalemate(color)) {
+                gameDao.resignGame(gameID);
+            } else if (game.isInStalemate(color)) {
                 message = String.format("%s is in stalemate", color);
+                gameDao.resignGame(gameID);
+            } else if (game.isInCheck(color)) {
+                message = String.format("%s is in check", color);
             }
         }
         return message;
@@ -191,7 +232,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         ));
         var start = letters.get(startPos.getColumn()) + startPos.getRow();
         var end = letters.get(endPos.getColumn()) + endPos.getRow();
-        return String.format("%s moved %s from %s to %s", playerName, piece, start, end);
+        return String.format("%s moved %s from %s to %s", playerName, piece.getPieceType(), start, end);
     }
 
     private void makeErrorMessage(String message, Session session, int gameID) throws IOException {

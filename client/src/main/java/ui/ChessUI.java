@@ -31,6 +31,7 @@ public class ChessUI {
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
         out.print(ERASE_SCREEN);
+        out.println();
         drawHeaders(out, color);
         drawChessBoard(out, game, color, moves);
         out.print(RESET);
