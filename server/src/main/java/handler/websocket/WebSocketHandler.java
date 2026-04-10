@@ -109,12 +109,12 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void leave(String authToken, int gameID, Session session) throws IOException, DataAccessException {
         String playerName = getUserName(authToken);
-        removePlayerFromGame(authToken, gameID);
         String message;
         if (isObserver(authToken, gameID)) {
             message = String.format("%s stopped observing the game", playerName);
         } else {
             message = String.format("%s left the game", playerName);
+            removePlayerFromGame(authToken, gameID);
         }
         var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
         connections.remove(gameID, session);
@@ -197,18 +197,24 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    private String checkGame(ChessGame game, int gameID) throws DataAccessException {
+    private String checkGame(ChessGame game,int gameID) throws DataAccessException {
         List<ChessGame.TeamColor> colors = List.of(ChessGame.TeamColor.BLACK, ChessGame.TeamColor.WHITE);
         String message = "";
         for (ChessGame.TeamColor color : colors) {
+            String playerName;
+            if (colorToString(color).equals("WHITE")) {
+                playerName = gameDao.getGame(gameID).whiteUsername();
+            } else {
+                playerName = gameDao.getGame(gameID).blackUsername();
+            }
             if (game.isInCheckmate(color)) {
-                message = String.format("%s is in checkmate", color);
+                message = String.format("%s is in checkmate", playerName);
                 gameDao.resignGame(gameID);
             } else if (game.isInStalemate(color)) {
-                message = String.format("%s is in stalemate", color);
+                message = String.format("%s is in stalemate", playerName);
                 gameDao.resignGame(gameID);
             } else if (game.isInCheck(color)) {
-                message = String.format("%s is in check", color);
+                message = String.format("%s is in check", playerName);
             }
         }
         return message;

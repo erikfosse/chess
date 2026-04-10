@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import static ui.EscapeSequences.SET_TEXT_COLOR_RED;
+
 public class WebSocketFacade extends Endpoint {
 
     Session session;
@@ -92,7 +94,7 @@ public class WebSocketFacade extends Endpoint {
             var command = new UserGameCommand(commandType, authToken, gameID);
             this.session.getBasicRemote().sendText(JsonSerialization.toJson(command));
         } catch (IOException e) {
-            throw new ResponseException(e.getMessage());
+            System.out.println(SET_TEXT_COLOR_RED + "[ERROR] Server has shut down");
         }
     }
 }

@@ -146,7 +146,7 @@ public class Client implements NotificationHandler {
             case 400 -> out.println("Incorrect input");
             case 401 -> out.println("Unauthorized to fulfill this request");
             case 403 -> out.println("Already Taken");
-            default -> out.println("An Error has occurred");
+            default -> out.println(SET_TEXT_COLOR_RED +  "[ERROR] A Server Error has occurred. It has probably shut down. Please restart and try again.");
         }
     }
     private static void preLoginHelp(PrintStream out) {
@@ -359,11 +359,20 @@ public class Client implements NotificationHandler {
             out.println("No parameters are needed for resign");
             return;
         }
-        try {
-            ws.resign(UserGameCommand.CommandType.RESIGN, authToken, currentGameID);
-        } catch (ResponseException e) {
-            out.println("Error: could not connect to the server.");
+        Scanner scanner = new Scanner(System.in);
+        out.println("Are you sure you want to resign? [YES/NO]");
+        if (scanner.hasNext()) {
+            String[] commands = getLine(scanner);
+            if (commands[0].equalsIgnoreCase("YES")) {
+                try {
+                    ws.resign(UserGameCommand.CommandType.RESIGN, authToken, currentGameID);
+                } catch (ResponseException e) {
+                    out.println("Error: could not connect to the server.");
+                }
+            }
         }
+
+
     }
     private static void makeMove(PrintStream out, String[] param) {
         if (param.length == 3 || param.length == 4) {
@@ -466,7 +475,7 @@ public class Client implements NotificationHandler {
             case 400 -> out.println("Incorrect input");
             case 401 -> out.println("Unauthorized to fulfill this request");
             case 403 -> out.println("Already taken");
-            default -> out.println("An Error has occurred");
+            default -> out.println(SET_TEXT_COLOR_RED +  "[ERROR] A Server Error has occurred. It has probably shut down. Please restart and try again.");
         }
     }
     private static void printCommandline(PrintStream out) {
